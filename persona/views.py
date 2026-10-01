@@ -1,35 +1,49 @@
-from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
-from rest_framework.request import Request
-from rest_framework.response import Response
-
 from .models import Overview, PersonalInfo, SpokenLanguage
 from .serializers import (
-    OverviewSerializer,
-    PersonalInfoSerializer,
-    SpokenLanguageSerializer,
+    PersonalInfoReadSerializer,
+    PersonalInfoWriteSerializer,
+    OverviewReadSerializer,
+    OverviewWriteSerializer,
+    SpokenLanguageReadSerializer,
+    SpokenLanguageWriteSerializer,
 )
-from api.utils.views.models import ActiveModelViews
+from api.utils.views.models import ModelViews, Actions
 
+personal_info_views = ModelViews(
+    model=PersonalInfo,
+    read_serializer=PersonalInfoReadSerializer,
+    write_serializer=PersonalInfoWriteSerializer,
+    actions=(
+        Actions.LIST,
+        Actions.RETRIEVE,
+        Actions.CREATE,
+        Actions.UPDATE,
+        Actions.DESTROY,
+    ),
+)
 
-@api_view(["GET"])
-def health(request: Request) -> Response:
-    return Response({"status": "ok"})
-
-
-@api_view(["GET"])
-def get_personal_info(request: Request) -> Response:
-    obj = get_object_or_404(PersonalInfo)
-    serialized = PersonalInfoSerializer(obj)
-    return Response(serialized.data)
-
-
-overview_views = ActiveModelViews(
+overview_views = ModelViews(
     model=Overview,
-    serializer=OverviewSerializer,
+    read_serializer=OverviewReadSerializer,
+    write_serializer=OverviewWriteSerializer,
+    actions=(
+        Actions.LIST,
+        Actions.RETRIEVE,
+        Actions.CREATE,
+        Actions.UPDATE,
+        Actions.DESTROY,
+    ),
 )
 
-spoken_language_views = ActiveModelViews(
+spoken_language_views = ModelViews(
     model=SpokenLanguage,
-    serializer=SpokenLanguageSerializer,
+    read_serializer=SpokenLanguageReadSerializer,
+    write_serializer=SpokenLanguageWriteSerializer,
+    actions=(
+        Actions.LIST,
+        Actions.RETRIEVE,
+        Actions.CREATE,
+        Actions.UPDATE,
+        Actions.DESTROY,
+    ),
 )

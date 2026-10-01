@@ -4,3 +4,4 @@ __pycache__/
 *.py[cod]
 staticfiles/
 .DS_Store
+.envrc

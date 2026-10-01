@@ -1,52 +1,71 @@
+from enum import Enum
 from dataclasses import dataclass
-from uuid import UUID
 
-from django.http import Http404
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers
-from rest_framework.decorators import api_view
-from rest_framework.request import Request
-from rest_framework.response import Response
+from django.db.models import Model
+from rest_framework import mixins, generics, permissions, serializers, viewsets
+from rest_framework.routers import BaseRouter
 
 from api.utils.models import ActiveModel
 
 
-def get_active_object[MT: ActiveModel](
-    model: type[MT], uuid_value: str | None, fe_flag: bool
-) -> MT:
-    try:
-        object_uuid = UUID(uuid_value)
-    except (AttributeError, TypeError, ValueError):
-        raise Http404
-    obj = get_object_or_404(model, uuid=object_uuid)
-    if fe_flag and not obj.active:
-        raise Http404
-    return obj
+class Actions(Enum):
+    LIST = mixins.ListModelMixin
+    RETRIEVE = mixins.RetrieveModelMixin
+    CREATE = mixins.CreateModelMixin
+    UPDATE = mixins.UpdateModelMixin
+    DESTROY = mixins.DestroyModelMixin
+
+
+WRITE_ACTIONS = (Actions.CREATE, Actions.UPDATE, Actions.DESTROY)
+PUBLIC_ACTIONS = (Actions.LIST, Actions.RETRIEVE)
+
+
+class ActiveFilterMixin(generics.GenericAPIView):
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if issubclass(queryset.model, ActiveModel):
+            queryset = queryset.filter(active=True)
+        return queryset
 
 
 @dataclass
-class ActiveModelViews[MT: ActiveModel, ST: serializers.ModelSerializer]:
-    model: type[MT]
-    serializer: type[ST]
+class ModelViews:
+    model: type[Model]
+    read_serializer: type[serializers.ModelSerializer]
+    write_serializer: type[serializers.ModelSerializer] | None = None
+    actions: tuple[Actions, ...] = PUBLIC_ACTIONS
+    select_related: tuple[str, ...] = ()
+    prefetch_related: tuple[str, ...] = ()
+    lookup_field: str = "uuid"
 
-    def list_endpoint(self, fe_flag: bool = False):
-        @api_view(["GET"])
-        def endpoint(request: Request) -> Response:
-            model_objects = self.model.objects.all()
-            if fe_flag:
-                model_objects = model_objects.filter(active=True)
-            serialized = self.serializer(model_objects, many=True)
-            return Response(serialized.data)
+    def _viewset(self) -> type[viewsets.GenericViewSet]:
+        config = self
+        queryset = self.model.objects.select_related(
+            *self.select_related
+        ).prefetch_related(*self.prefetch_related)
 
-        return endpoint
+        class View(
+            ActiveFilterMixin,
+            *(action.value for action in self.actions),
+            viewsets.GenericViewSet,
+        ):
+            lookup_field = config.lookup_field
 
-    def detail_endpoint(self, fe_flag: bool = False):
-        @api_view(["GET"])
-        def endpoint(request: Request) -> Response:
-            model_obj = get_active_object(
-                self.model, request.query_params.get("uuid"), fe_flag=fe_flag
-            )
-            serialized = self.serializer(model_obj)
-            return Response(serialized.data)
+            def get_serializer_class(self):
+                if self.action in WRITE_ACTIONS and config.write_serializer:
+                    return config.write_serializer
+                return config.read_serializer
 
-        return endpoint
+            def get_permissions(self):
+                if self.action in PUBLIC_ACTIONS:
+                    return [permissions.AllowAny()]
+                return [permissions.IsAdminUser()]
+
+        View.queryset = queryset
+        View.__name__ = f"{self.model.__name__}ViewSet"
+        return View
+
+    def register(self, router: BaseRouter, prefix: str) -> None:
+        router.register(
+            prefix, self._viewset(), basename=self.model._meta.model_name
+        )
