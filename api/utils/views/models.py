@@ -23,7 +23,9 @@ PUBLIC_ACTIONS = (Actions.LIST, Actions.RETRIEVE)
 class ActiveFilterMixin(generics.GenericAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
-        if issubclass(queryset.model, ActiveModel):
+        user = self.request.user
+        is_staff = bool(user.is_authenticated and user.is_staff)
+        if not is_staff and issubclass(queryset.model, ActiveModel):
             queryset = queryset.filter(active=True)
         return queryset
 
