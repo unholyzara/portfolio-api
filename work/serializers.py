@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from .models import Company, TechnicalSkill, SoftSkill, WorkExperience
+from .models import (
+    Company,
+    TechnicalSkill,
+    SoftSkill,
+    Technology,
+    WorkExperience,
+)
 
 
 class CompanyReadSerializer(serializers.ModelSerializer):
@@ -15,16 +21,22 @@ class CompanyWriteSerializer(serializers.ModelSerializer):
         fields = ["name", "website"]
 
 
-class TechnicalReadSkillSerializer(serializers.ModelSerializer):
+class TechnicalSkillReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = TechnicalSkill
         fields = ["uuid", "name", "description"]
 
 
+class TechnicalSkillStaffReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TechnicalSkill
+        fields = ["uuid", "active", "name", "description"]
+
+
 class TechnicalWriteSkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = TechnicalSkill
-        fields = ["name", "description"]
+        fields = ["active", "name", "description"]
 
 
 class SoftSkillReadSerializer(serializers.ModelSerializer):
@@ -33,21 +45,65 @@ class SoftSkillReadSerializer(serializers.ModelSerializer):
         fields = ["uuid", "name", "description"]
 
 
+class SoftSkillStaffReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SoftSkill
+        fields = ["uuid", "active", "name", "description"]
+
+
 class SoftSkillWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = SoftSkill
-        fields = ["name", "description"]
+        fields = ["active", "name", "description"]
+
+
+class TechnologyReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Technology
+        fields = ["uuid", "name", "type", "level"]
+
+
+class TechnologyStaffReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Technology
+        fields = ["uuid", "active", "name", "type", "level"]
+
+
+class TechnologyWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Technology
+        fields = ["active", "name", "type", "level"]
 
 
 class WorkExperienceReadSerializer(serializers.ModelSerializer):
     company = CompanyReadSerializer(read_only=True)
-    technical_skills = TechnicalReadSkillSerializer(many=True, read_only=True)
+    technical_skills = TechnicalSkillReadSerializer(many=True, read_only=True)
     soft_skills = SoftSkillReadSerializer(many=True, read_only=True)
 
     class Meta:
         model = WorkExperience
         fields = [
             "uuid",
+            "title",
+            "description",
+            "company",
+            "start_date",
+            "end_date",
+            "technical_skills",
+            "soft_skills",
+        ]
+
+
+class WorkExperienceStaffReadSerializer(serializers.ModelSerializer):
+    company = CompanyReadSerializer(read_only=True)
+    technical_skills = TechnicalSkillReadSerializer(many=True, read_only=True)
+    soft_skills = SoftSkillReadSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = WorkExperience
+        fields = [
+            "uuid",
+            "active",
             "title",
             "description",
             "company",
@@ -90,4 +146,5 @@ class WorkExperienceWriteSerializer(serializers.ModelSerializer):
             "end_date",
             "technical_skills",
             "soft_skills",
+            "technologies",
         ]

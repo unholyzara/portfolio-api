@@ -34,6 +34,7 @@ class ActiveFilterMixin(generics.GenericAPIView):
 class ModelViews:
     model: type[Model]
     read_serializer: type[serializers.ModelSerializer]
+    read_staff_serializer: type[serializers.ModelSerializer] | None = None
     write_serializer: type[serializers.ModelSerializer] | None = None
     actions: tuple[Actions, ...] = PUBLIC_ACTIONS
     select_related: tuple[str, ...] = ()
@@ -52,14 +53,19 @@ class ModelViews:
         ):
             lookup_field = config.lookup_field
 
+            @property
+            def user_is_staff(self):
+                user = self.request.user
+                return bool(user.is_authenticated and user.is_staff)
+
             def get_queryset(self):
                 queryset = super().get_queryset().prefetch_related(None)
-                user = self.request.user
-                is_staff = bool(user.is_authenticated and user.is_staff)
                 lookups = []
                 for name in config.prefetch_related:
                     related = config.model._meta.get_field(name).related_model
-                    if is_staff or not issubclass(related, ActiveModel):
+                    if self.user_is_staff or not issubclass(
+                        related, ActiveModel
+                    ):
                         lookups.append(name)
                     else:
                         lookups.append(
@@ -76,6 +82,8 @@ class ModelViews:
                     and config.write_serializer
                 ):
                     return config.write_serializer
+                if self.user_is_staff and config.read_staff_serializer:
+                    return config.read_staff_serializer
                 return config.read_serializer
 
             def get_permissions(self):

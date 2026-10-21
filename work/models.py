@@ -27,6 +27,29 @@ class SoftSkill(models_utils.UUIDModel, models_utils.ActiveModel):
         return self.name
 
 
+class TechnologyType(models.TextChoices):
+    LANGUAGE = "language", "Language"
+    FRAMEWORK = "framework", "Framework"
+    LIBRARY = "library", "Library"
+    MARKUP = "markup", "Markup"
+    STYLESHEET = "stylesheet", "Stylesheet"
+    TOOL = "tool", "Tool"
+    DATABASE = "database", "Database"
+
+
+class Technology(
+    models_utils.UUIDModel, models_utils.ActiveModel, models_utils.LevelModel
+):
+    name = models.CharField(max_length=100, unique=True)
+    type = models.CharField(max_length=20, choices=TechnologyType.choices)
+
+    class Meta:
+        ordering = ["type", "name"]
+
+    def __str__(self):
+        return self.name
+
+
 class WorkExperience(models_utils.UUIDModel, models_utils.ActiveModel):
     title = models.CharField()
     description = models.TextField(
@@ -57,6 +80,11 @@ class WorkExperience(models_utils.UUIDModel, models_utils.ActiveModel):
     )
     soft_skills = models.ManyToManyField(
         SoftSkill,
+        related_name="work_experiences",
+        blank=True,
+    )
+    technologies = models.ManyToManyField(
+        Technology,
         related_name="work_experiences",
         blank=True,
     )

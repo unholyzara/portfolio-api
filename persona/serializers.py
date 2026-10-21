@@ -24,6 +24,12 @@ class PersonalInfoWriteSerializer(serializers.ModelSerializer):
 class OverviewReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Overview
+        fields = ["uuid", "text"]
+
+
+class OverviewStaffReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Overview
         fields = ["uuid", "active", "text"]
 
 
@@ -34,6 +40,12 @@ class OverviewWriteSerializer(serializers.ModelSerializer):
 
 
 class SpokenLanguageReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpokenLanguage
+        fields = ["uuid", "name", "level"]
+
+
+class SpokenLanguageStaffReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpokenLanguage
         fields = ["uuid", "active", "name", "level"]

@@ -9,9 +9,15 @@ from test.utils.abstract import (
     AbstractActiveModelViewsTest,
 )
 
-from work.models import Company, TechnicalSkill, SoftSkill, WorkExperience
+from work.models import (
+    Company,
+    TechnicalSkill,
+    SoftSkill,
+    Technology,
+    WorkExperience,
+)
 from work.serializers import (
-    TechnicalReadSkillSerializer,
+    TechnicalSkillReadSerializer,
     SoftSkillReadSerializer,
 )
 
@@ -55,6 +61,21 @@ class TestSoftSkillViews(AbstractActiveModelViewsTest):
     }
     update_key = "name"
     update_value = "softskill 2"
+
+
+@pytest.mark.django_db
+class TestTechnologyViews(AbstractActiveModelViewsTest):
+    model = Technology
+    list_url_name = "technology-list"
+    retrieve_url_name = "technology-detail"
+    payload = {
+        "active": True,
+        "name": "technology 1",
+        "type": "language",
+        "level": 4,
+    }
+    update_key = "name"
+    update_value = "technology 2"
 
 
 @pytest.mark.django_db
@@ -126,7 +147,7 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         r = staff_client.get(url)
         assert r.json()[self.pk_key] == str(obj.uuid)
         obj_tech_skills = [
-            TechnicalReadSkillSerializer(tech_skill).data
+            TechnicalSkillReadSerializer(tech_skill).data
             for tech_skill in obj.technical_skills.all()
         ]
         assert r.json()["technical_skills"] == obj_tech_skills
@@ -142,7 +163,7 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         r = APIClient().get(url)
         assert r.json()[self.pk_key] == str(obj.uuid)
         obj_tech_skills = [
-            TechnicalReadSkillSerializer(tech_skill).data
+            TechnicalSkillReadSerializer(tech_skill).data
             for tech_skill in obj.technical_skills.filter(active=True)
         ]
         assert r.json()["technical_skills"] == obj_tech_skills
