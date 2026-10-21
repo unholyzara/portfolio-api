@@ -17,7 +17,7 @@ from work.serializers import (
 
 
 @pytest.mark.django_db
-class TestCompany(AbstractModelViewsTest):
+class TestCompanyViews(AbstractModelViewsTest):
     model = Company
     list_url_name = "company-list"
     retrieve_url_name = "company-detail"
@@ -30,7 +30,7 @@ class TestCompany(AbstractModelViewsTest):
 
 
 @pytest.mark.django_db
-class TestTechnicalSkill(AbstractActiveModelViewsTest):
+class TestTechnicalSkillViews(AbstractActiveModelViewsTest):
     model = TechnicalSkill
     list_url_name = "technicalskill-list"
     retrieve_url_name = "technicalskill-detail"
@@ -44,7 +44,7 @@ class TestTechnicalSkill(AbstractActiveModelViewsTest):
 
 
 @pytest.mark.django_db
-class TestSoftSkill(AbstractActiveModelViewsTest):
+class TestSoftSkillViews(AbstractActiveModelViewsTest):
     model = SoftSkill
     list_url_name = "softskill-list"
     retrieve_url_name = "softskill-detail"
@@ -58,7 +58,7 @@ class TestSoftSkill(AbstractActiveModelViewsTest):
 
 
 @pytest.mark.django_db
-class TestWorkExperience(AbstractActiveModelViewsTest):
+class TestWorkExperienceViews(AbstractActiveModelViewsTest):
     model = WorkExperience
     list_url_name = "workexperience-list"
     retrieve_url_name = "workexperience-detail"

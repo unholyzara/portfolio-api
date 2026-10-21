@@ -18,7 +18,7 @@ PAYLOAD = {
 
 
 @pytest.mark.django_db
-class TestPersonalInfoView:
+class TestPersonalInfoViews:
     def setup_method(self):
         self.url = reverse("personalinfo")
 
@@ -85,7 +85,7 @@ class TestPersonalInfoView:
 
 
 @pytest.mark.django_db
-class TestOverview(AbstractActiveModelViewsTest):
+class TestOverviewViews(AbstractActiveModelViewsTest):
     model = Overview
     list_url_name = "overview-list"
     retrieve_url_name = "overview-detail"
@@ -98,7 +98,7 @@ class TestOverview(AbstractActiveModelViewsTest):
 
 
 @pytest.mark.django_db
-class TestSpokenLanguage(AbstractActiveModelViewsTest):
+class TestSpokenLanguageViews(AbstractActiveModelViewsTest):
     model = SpokenLanguage
     list_url_name = "spokenlanguage-list"
     retrieve_url_name = "spokenlanguage-detail"
