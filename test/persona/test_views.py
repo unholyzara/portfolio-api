@@ -5,7 +5,10 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from persona.models import PersonalInfo
+from test.utils.abstract import AbstractActiveModelViewsTest
+
+from persona.models import PersonalInfo, Overview, SpokenLanguage
+from persona.utils.enums import Levels
 
 PAYLOAD = {
     "name": "Mario",
@@ -87,3 +90,30 @@ class TestPersonalInfoView:
         r = getattr(APIClient(), method)(self.url, PAYLOAD, format="json")
         assert r.status_code in (401, 403)
         assert PersonalInfo.objects.get().name == "Mario"
+
+
+@pytest.mark.django_db
+class TestOverview(AbstractActiveModelViewsTest):
+    model = Overview
+    list_url_name = "overview-list"
+    retrieve_url_name = "overview-detail"
+    payload = {
+        "active": True,
+        "text": "overview text",
+    }
+    update_key = "text"
+    update_value = "new-text"
+
+
+@pytest.mark.django_db
+class TestSpokenLanguage(AbstractActiveModelViewsTest):
+    model = SpokenLanguage
+    list_url_name = "spokenlanguage-list"
+    retrieve_url_name = "spokenlanguage-detail"
+    payload = {
+        "active": True,
+        "name": "name",
+        "level": Levels.MD.name,
+    }
+    update_key = "name"
+    update_value = "new-name"

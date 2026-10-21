@@ -1,7 +1,7 @@
 from enum import Enum
 from dataclasses import dataclass
 
-from django.db.models import Model
+from django.db.models import Model, Prefetch
 from rest_framework import mixins, generics, permissions, serializers, viewsets
 from rest_framework.routers import BaseRouter
 
@@ -53,6 +53,34 @@ class ModelViews:
             viewsets.GenericViewSet,
         ):
             lookup_field = config.lookup_field
+
+            def get_queryset(self):
+                queryset = super().get_queryset()
+                user_is_staff = bool(
+                    self.request.user
+                    and self.request.user.is_authenticated
+                    and self.request.user.is_staff
+                )
+                for name in config.prefetch_related:
+                    related_model: type[Model] = config.model._meta.get_field(
+                        name
+                    ).related_model
+                    if (
+                        not issubclass(related_model, ActiveModel)
+                        or not user_is_staff
+                    ):
+                        queryset = queryset.prefetch_related(name)
+                    else:
+                        related: type[Model] = config.model._meta.get_field(
+                            name
+                        ).related_model
+                        queryset = queryset.prefetch_related(
+                            Prefetch(
+                                name,
+                                queryset=related.objects.filter(active=True),
+                            )
+                        )
+                return queryset
 
             def get_serializer_class(self):
                 if self.action in WRITE_ACTIONS and config.write_serializer:

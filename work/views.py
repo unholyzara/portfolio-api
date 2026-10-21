@@ -12,7 +12,7 @@ from .serializers import (
     WorkExperienceWriteSerializer,
 )
 
-company_skill_views = ModelViews(
+company_views = ModelViews(
     model=Company,
     read_serializer=CompanyReadSerializer,
     write_serializer=CompanyWriteSerializer,
