@@ -39,6 +39,7 @@ class ModelViews:
     select_related: tuple[str, ...] = ()
     prefetch_related: tuple[str, ...] = ()
     lookup_field: str = "uuid"
+    singleton: bool = False
 
     def _viewset(self) -> type[viewsets.GenericViewSet]:
         config = self
@@ -59,7 +60,7 @@ class ModelViews:
                 return config.read_serializer
 
             def get_permissions(self):
-                if self.action in PUBLIC_ACTIONS:
+                if self.action in [a.name.lower() for a in PUBLIC_ACTIONS]:
                     return [permissions.AllowAny()]
                 return [permissions.IsAdminUser()]
 

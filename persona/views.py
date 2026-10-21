@@ -1,3 +1,6 @@
+from rest_framework import generics, mixins, permissions
+from django.shortcuts import get_object_or_404
+
 from .models import Overview, PersonalInfo, SpokenLanguage
 from .serializers import (
     PersonalInfoReadSerializer,
@@ -9,18 +12,31 @@ from .serializers import (
 )
 from api.utils.views.models import ModelViews, Actions
 
-personal_info_views = ModelViews(
-    model=PersonalInfo,
-    read_serializer=PersonalInfoReadSerializer,
-    write_serializer=PersonalInfoWriteSerializer,
-    actions=(
-        Actions.LIST,
-        Actions.RETRIEVE,
-        Actions.CREATE,
-        Actions.UPDATE,
-        Actions.DESTROY,
-    ),
-)
+
+class PersonalInfoView(
+    mixins.CreateModelMixin,
+    generics.RetrieveUpdateDestroyAPIView,
+):
+    queryset = PersonalInfo.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return PersonalInfoReadSerializer
+        return PersonalInfoWriteSerializer
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]
+
+    def get_object(self):
+        obj = get_object_or_404(self.get_queryset())
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
 
 overview_views = ModelViews(
     model=Overview,

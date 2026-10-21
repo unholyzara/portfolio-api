@@ -3,7 +3,6 @@ from django.urls import path, include
 
 from .views import health
 
-from persona.urls import router as persona_router
 from work.urls import router as work_router
 
 urlpatterns = [
@@ -13,6 +12,6 @@ urlpatterns = [
         health,
         name="api-health",
     ),
-    path("persona/", include(persona_router.urls)),
+    path("persona/", include("persona.urls")),
     path("work/", include(work_router.urls)),
 ]

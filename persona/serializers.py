@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import Overview, PersonalInfo, SpokenLanguage
+from .exceptions import PersonalInfoAlreadyExists
 
 
 class PersonalInfoReadSerializer(serializers.ModelSerializer):
@@ -13,6 +14,11 @@ class PersonalInfoWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalInfo
         fields = ["name", "surname", "birth_date"]
+
+    def validate(self, attrs):
+        if self.instance is None and PersonalInfo.objects.exists():
+            raise PersonalInfoAlreadyExists()
+        return attrs
 
 
 class OverviewReadSerializer(serializers.ModelSerializer):
