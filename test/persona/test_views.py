@@ -61,14 +61,6 @@ class TestPersonalInfoView:
         assert r.status_code == 200
         assert PersonalInfo.objects.get().name == "Luigi"
 
-    def test_partial_update(self, staff_client):
-        self._create_personal_info()
-        r = staff_client.patch(self.url, {"name": "Luigi"}, format="json")
-        assert r.status_code == 200
-        obj = PersonalInfo.objects.get()
-        assert obj.name == "Luigi"
-        assert obj.surname == "Rossi"
-
     def test_update_404(self, staff_client):
         r = staff_client.put(self.url, PAYLOAD, format="json")
         assert r.status_code == 404

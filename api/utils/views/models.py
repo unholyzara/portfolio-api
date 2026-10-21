@@ -43,9 +43,7 @@ class ModelViews:
 
     def _viewset(self) -> type[viewsets.GenericViewSet]:
         config = self
-        queryset = self.model.objects.select_related(
-            *self.select_related
-        ).prefetch_related(*self.prefetch_related)
+        queryset = self.model.objects.select_related(*self.select_related)
 
         class View(
             ActiveFilterMixin,
@@ -55,35 +53,28 @@ class ModelViews:
             lookup_field = config.lookup_field
 
             def get_queryset(self):
-                queryset = super().get_queryset()
-                user_is_staff = bool(
-                    self.request.user
-                    and self.request.user.is_authenticated
-                    and self.request.user.is_staff
-                )
+                queryset = super().get_queryset().prefetch_related(None)
+                user = self.request.user
+                is_staff = bool(user.is_authenticated and user.is_staff)
+                lookups = []
                 for name in config.prefetch_related:
-                    related_model: type[Model] = config.model._meta.get_field(
-                        name
-                    ).related_model
-                    if (
-                        not issubclass(related_model, ActiveModel)
-                        or not user_is_staff
-                    ):
-                        queryset = queryset.prefetch_related(name)
+                    related = config.model._meta.get_field(name).related_model
+                    if is_staff or not issubclass(related, ActiveModel):
+                        lookups.append(name)
                     else:
-                        related: type[Model] = config.model._meta.get_field(
-                            name
-                        ).related_model
-                        queryset = queryset.prefetch_related(
+                        lookups.append(
                             Prefetch(
                                 name,
                                 queryset=related.objects.filter(active=True),
                             )
                         )
-                return queryset
+                return queryset.prefetch_related(*lookups)
 
             def get_serializer_class(self):
-                if self.action in WRITE_ACTIONS and config.write_serializer:
+                if (
+                    self.action in [a.name.lower() for a in WRITE_ACTIONS]
+                    and config.write_serializer
+                ):
                     return config.write_serializer
                 return config.read_serializer
 
