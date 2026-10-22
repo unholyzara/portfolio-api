@@ -60,19 +60,19 @@ class SoftSkillWriteSerializer(serializers.ModelSerializer):
 class TechnologyReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Technology
-        fields = ["uuid", "name", "type", "level"]
+        fields = ["uuid", "name", "typology", "level"]
 
 
 class TechnologyStaffReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Technology
-        fields = ["uuid", "active", "name", "type", "level"]
+        fields = ["uuid", "active", "name", "typology", "level"]
 
 
 class TechnologyWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Technology
-        fields = ["active", "name", "type", "level"]
+        fields = ["active", "name", "typology", "level"]
 
 
 class WorkExperienceReadSerializer(serializers.ModelSerializer):

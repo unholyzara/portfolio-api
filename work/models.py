@@ -41,10 +41,10 @@ class Technology(
     models_utils.UUIDModel, models_utils.ActiveModel, models_utils.LevelModel
 ):
     name = models.CharField(max_length=100, unique=True)
-    type = models.CharField(max_length=20, choices=TechnologyType.choices)
+    typology = models.CharField(max_length=20, choices=TechnologyType.choices)
 
     class Meta:
-        ordering = ["type", "name"]
+        ordering = ["typology", "name"]
 
     def __str__(self):
         return self.name

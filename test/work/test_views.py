@@ -71,7 +71,7 @@ class TestTechnologyViews(AbstractActiveModelViewsTest):
     payload = {
         "active": True,
         "name": "technology 1",
-        "type": "language",
+        "typology": "language",
         "level": 4,
     }
     update_key = "name"
