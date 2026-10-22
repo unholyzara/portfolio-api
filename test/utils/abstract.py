@@ -1,18 +1,16 @@
 import abc, copy
 
-from typing import Any, TypeVar
+from typing import Any
 from uuid import uuid4
 
 from django.urls import reverse
-from rest_framework.test import APIClient
+from django.test import Client
 
 from api.utils.models import UUIDModel
 
-UUIDModelType = TypeVar("UUIDModelType", bound=UUIDModel)
 
-
-class AbstractModelViewsTest(abc.ABC):
-    model: type[UUIDModelType]
+class AbstractModelViewsTest[ModelT: UUIDModel](abc.ABC):
+    model: type[ModelT]
     list_url_name: str
     retrieve_url_name: str
     payload: dict[str, Any]
@@ -35,29 +33,32 @@ class AbstractModelViewsTest(abc.ABC):
         values.update(overrides)
         return self.model.objects.create(**values)
 
-    def test_list(self, staff_client):
+    def get_obj_pk(self, obj: ModelT):
+        return str(obj.uuid)
+
+    def test_list(self, staff_client: Client):
         first_obj = self.create_object()
         second_obj = self.create_object(**{self.update_key: self.update_value})
         r = staff_client.get(self.list_url)
         assert r.status_code == 200
         assert [obj[self.pk_key] for obj in r.json()] == [
-            str(first_obj.uuid),
-            str(second_obj.uuid),
+            self.get_obj_pk(first_obj),
+            self.get_obj_pk(second_obj),
         ]
 
-    def test_retrieve(self, staff_client):
+    def test_retrieve(self, staff_client: Client):
         obj = self.create_object()
-        url = self._get_detail_url(pk_value=obj.uuid)
+        url = self._get_detail_url(pk_value=self.get_obj_pk(obj))
         r = staff_client.get(url)
-        assert r.json()[self.pk_key] == str(obj.uuid)
+        assert r.json()[self.pk_key] == self.get_obj_pk(obj)
 
-    def test_retrieve_404(self, staff_client):
+    def test_retrieve_404(self, staff_client: Client):
         test_uuid = uuid4()
         url = self._get_detail_url(pk_value=test_uuid)
         r = staff_client.get(url)
         assert r.status_code == 404
 
-    def test_create(self, staff_client):
+    def test_create(self, staff_client: Client):
         r = staff_client.post(self.list_url, self.get_payload(), format="json")
         assert r.status_code == 201
         created_obj = self.model.objects.get()
@@ -65,13 +66,13 @@ class AbstractModelViewsTest(abc.ABC):
         assert dict_obj[self.update_key] == self.get_payload()[self.update_key]
 
     def test_create_no_staff(self):
-        r = APIClient().post(self.list_url, self.get_payload(), format="json")
+        r = Client().post(self.list_url, self.get_payload(), format="json")
         assert r.status_code == 403
         assert not self.model.objects.exists()
 
-    def test_update(self, staff_client):
+    def test_update(self, staff_client: Client):
         obj = self.create_object()
-        url = self._get_detail_url(pk_value=obj.uuid)
+        url = self._get_detail_url(pk_value=self.get_obj_pk(obj))
         r = staff_client.put(
             url,
             {**self.get_payload(), self.update_key: self.update_value},
@@ -82,7 +83,7 @@ class AbstractModelViewsTest(abc.ABC):
         dict_obj = updated_obj.__dict__
         assert dict_obj[self.update_key] == self.update_value
 
-    def test_update_404(self, staff_client):
+    def test_update_404(self, staff_client: Client):
         test_uuid = uuid4()
         url = self._get_detail_url(pk_value=test_uuid)
         r = staff_client.put(url, self.get_payload(), format="json")
@@ -91,8 +92,8 @@ class AbstractModelViewsTest(abc.ABC):
 
     def test_update_not_staff(self):
         obj = self.create_object()
-        url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().put(
+        url = self._get_detail_url(pk_value=self.get_obj_pk(obj))
+        r = Client().put(
             url,
             {**self.get_payload(), self.update_key: self.update_value},
             format="json",
@@ -103,14 +104,14 @@ class AbstractModelViewsTest(abc.ABC):
         dict_obj = obj.__dict__
         assert dict_updated_obj[self.update_key] == dict_obj[self.update_key]
 
-    def test_destroy(self, staff_client):
+    def test_destroy(self, staff_client: Client):
         obj = self.create_object()
-        url = self._get_detail_url(pk_value=obj.uuid)
+        url = self._get_detail_url(pk_value=self.get_obj_pk(obj))
         r = staff_client.delete(url, format="json")
         assert r.status_code == 204
         assert not self.model.objects.exists()
 
-    def test_destroy_404(self, staff_client):
+    def test_destroy_404(self, staff_client: Client):
         self.create_object()
         test_uuid = uuid4()
         url = self._get_detail_url(pk_value=test_uuid)
@@ -120,14 +121,14 @@ class AbstractModelViewsTest(abc.ABC):
 
     def test_destroy_not_staff(self):
         obj = self.create_object()
-        url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().put(url, format="json")
+        url = self._get_detail_url(pk_value=self.get_obj_pk(obj))
+        r = Client().put(url, format="json")
         assert r.status_code == 403
         assert self.model.objects.exists()
 
 
 class AbstractActiveModelViewsTest(AbstractModelViewsTest):
-    def test_list(self, staff_client):
+    def test_list(self, staff_client: Client):
         active_obj = self.create_object()
         not_active_obj = self.create_object(
             active=False, **{self.update_key: self.update_value}
@@ -135,27 +136,27 @@ class AbstractActiveModelViewsTest(AbstractModelViewsTest):
         r = staff_client.get(self.list_url)
         assert r.status_code == 200
         assert [overview[self.pk_key] for overview in r.json()] == [
-            str(active_obj.uuid),
-            str(not_active_obj.uuid),
+            self.get_obj_pk(active_obj),
+            self.get_obj_pk(not_active_obj),
         ]
 
     def test_list_no_staff(self):
         active_obj = self.create_object()
         self.create_object(active=False, **{self.update_key: self.update_value})
-        r = APIClient().get(self.list_url)
+        r = Client().get(self.list_url)
         assert r.status_code == 200
         assert [overview[self.pk_key] for overview in r.json()] == [
-            str(active_obj.uuid)
+            self.get_obj_pk(active_obj)
         ]
 
     def test_retrieve_no_staff(self):
         obj = self.create_object()
-        url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().get(url)
-        assert r.json()[self.pk_key] == str(obj.uuid)
+        url = self._get_detail_url(pk_value=self.get_obj_pk(obj))
+        r = Client().get(url)
+        assert r.json()[self.pk_key] == self.get_obj_pk(obj)
 
     def test_retrieve_no_staff_not_active(self):
         obj = self.create_object(active=False)
-        url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().get(url)
+        url = self._get_detail_url(pk_value=self.get_obj_pk(obj))
+        r = Client().get(url)
         assert r.status_code == 404
