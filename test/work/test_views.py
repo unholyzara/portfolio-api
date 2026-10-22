@@ -2,7 +2,7 @@ import copy
 
 import pytest
 
-from django.test import Client
+from rest_framework.test import APIClient
 
 from test.utils.abstract import (
     AbstractModelViewsTest,
@@ -160,7 +160,7 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
     def test_retrieve_no_staff(self):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
-        r = Client().get(url)
+        r = APIClient().get(url)
         assert r.json()[self.pk_key] == str(obj.uuid)
         obj_tech_skills = [
             TechnicalSkillReadSerializer(tech_skill).data

@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 
 from django.urls import reverse
-from django.test import Client
+from rest_framework.test import APIClient
 
 from test.utils.abstract import AbstractActiveModelViewsTest
 
@@ -33,11 +33,11 @@ class TestPersonalInfoViews:
 
     def test_detail(self):
         obj = self._create_personal_info()
-        r = Client().get(self.url)
+        r = APIClient().get(self.url)
         assert r.json()["name"] == obj.name
 
     def test_detail_404(self):
-        r = Client().get(self.url)
+        r = APIClient().get(self.url)
         assert r.status_code == 404
 
     def test_create(self, staff_client):
@@ -79,7 +79,7 @@ class TestPersonalInfoViews:
     @pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])
     def test_anonymous_cannot_write(self, method):
         self._create_personal_info()
-        r = getattr(Client(), method)(self.url, PAYLOAD, format="json")
+        r = getattr(APIClient(), method)(self.url, PAYLOAD, format="json")
         assert r.status_code in (401, 403)
         assert PersonalInfo.objects.get().name == "Mario"
 
