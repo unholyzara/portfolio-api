@@ -85,3 +85,15 @@ class SpokenLanguage(models_utils.UUIDModel, models_utils.ActiveModel):
                 condition=models.Q(active=True),
             ),
         ]
+
+
+class Education(models_utils.UUIDModel, models_utils.ActiveModel):
+    institution = models.CharField(max_length=200)
+    qualification = models.CharField(max_length=200)
+    field_of_study = models.CharField(max_length=200, blank=True)
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True, null=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-end_date", "-start_date"]
