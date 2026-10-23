@@ -18,7 +18,7 @@ class SkillType(models.TextChoices):
 
 
 class Skill(models_utils.UUIDModel, models_utils.ActiveModel):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     typology = models.CharField(max_length=20, choices=SkillType.choices)
 
@@ -26,7 +26,8 @@ class Skill(models_utils.UUIDModel, models_utils.ActiveModel):
         ordering = ["typology", "name"]
         constraints = [
             models.UniqueConstraint(
-                fields=["typology", "name"], name="unique_skill_typology_name"
+                fields=["typology", "name_it"],
+                name="unique_skill_typology_name_it",
             ),
         ]
 

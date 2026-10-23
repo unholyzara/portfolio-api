@@ -1,4 +1,4 @@
-from api.utils.views.models import ModelViews, Actions
+from api.utils.views.models import ModelViews, StaffModelViews
 
 from .models import (
     Company,
@@ -12,7 +12,7 @@ from .serializers import (
     CompanyWriteSerializer,
     SkillReadSerializer,
     SkillStaffReadSerializer,
-    SkillWriteSkillSerializer,
+    SkillWriteSerializer,
     TechnologyReadSerializer,
     TechnologyStaffReadSerializer,
     TechnologyWriteSerializer,
@@ -27,56 +27,43 @@ from .serializers import (
 company_views = ModelViews(
     model=Company,
     read_serializer=CompanyReadSerializer,
+)
+company_staff_views = StaffModelViews(
+    model=Company,
+    read_serializer=CompanyReadSerializer,
     write_serializer=CompanyWriteSerializer,
-    actions=(
-        Actions.LIST,
-        Actions.RETRIEVE,
-        Actions.CREATE,
-        Actions.UPDATE,
-        Actions.DESTROY,
-    ),
 )
 
 skill_views = ModelViews(
     model=Skill,
     read_serializer=SkillReadSerializer,
-    read_staff_serializer=SkillStaffReadSerializer,
-    write_serializer=SkillWriteSkillSerializer,
-    actions=(
-        Actions.LIST,
-        Actions.RETRIEVE,
-        Actions.CREATE,
-        Actions.UPDATE,
-        Actions.DESTROY,
-    ),
+)
+skill_staff_views = StaffModelViews(
+    model=Skill,
+    read_serializer=SkillStaffReadSerializer,
+    write_serializer=SkillWriteSerializer,
 )
 
 technology_views = ModelViews(
     model=Technology,
     read_serializer=TechnologyReadSerializer,
-    read_staff_serializer=TechnologyStaffReadSerializer,
+)
+technology_staff_views = StaffModelViews(
+    model=Technology,
+    read_serializer=TechnologyStaffReadSerializer,
     write_serializer=TechnologyWriteSerializer,
-    actions=(
-        Actions.LIST,
-        Actions.RETRIEVE,
-        Actions.CREATE,
-        Actions.UPDATE,
-        Actions.DESTROY,
-    ),
 )
 
 work_experience_views = ModelViews(
     model=WorkExperience,
     read_serializer=WorkExperienceReadSerializer,
-    read_staff_serializer=WorkExperienceStaffReadSerializer,
+    select_related=("company",),
+    prefetch_related=("technical_skills", "soft_skills", "technologies"),
+)
+work_experience_staff_views = StaffModelViews(
+    model=WorkExperience,
+    read_serializer=WorkExperienceStaffReadSerializer,
     write_serializer=WorkExperienceWriteSerializer,
-    actions=(
-        Actions.LIST,
-        Actions.RETRIEVE,
-        Actions.CREATE,
-        Actions.UPDATE,
-        Actions.DESTROY,
-    ),
     select_related=("company",),
     prefetch_related=("technical_skills", "soft_skills", "technologies"),
 )
@@ -84,15 +71,13 @@ work_experience_views = ModelViews(
 project_views = ModelViews(
     model=Project,
     read_serializer=ProjectReadSerializer,
-    read_staff_serializer=ProjectStaffReadSerializer,
+    select_related=("work_experience",),
+    prefetch_related=("technologies",),
+)
+project_staff_views = StaffModelViews(
+    model=Project,
+    read_serializer=ProjectStaffReadSerializer,
     write_serializer=ProjectWriteSerializer,
-    actions=(
-        Actions.LIST,
-        Actions.RETRIEVE,
-        Actions.CREATE,
-        Actions.UPDATE,
-        Actions.DESTROY,
-    ),
     select_related=("work_experience",),
     prefetch_related=("technologies",),
 )

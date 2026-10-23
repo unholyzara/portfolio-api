@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from modeltranslation.utils import get_translation_fields
 
 from .models import (
     Company,
@@ -31,13 +32,46 @@ class SkillReadSerializer(serializers.ModelSerializer):
 class SkillStaffReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
-        fields = ["uuid", "active", "typology", "name", "description"]
+        fields = [
+            "uuid",
+            "active",
+            "typology",
+            *get_translation_fields("name"),
+            *get_translation_fields("description"),
+        ]
 
 
-class SkillWriteSkillSerializer(serializers.ModelSerializer):
+class SkillWriteSerializer(serializers.ModelSerializer):
+    name_it = serializers.CharField(max_length=100)
+    name_en = serializers.CharField(
+        max_length=100, required=False, allow_null=True
+    )
+
     class Meta:
         model = Skill
-        fields = ["active", "typology", "name", "description"]
+        fields = [
+            "active",
+            "typology",
+            *get_translation_fields("name"),
+            *get_translation_fields("description"),
+        ]
+
+    def validate(self, attrs):
+        typology = attrs.get(
+            "typology", getattr(self.instance, "typology", None)
+        )
+        errors = {}
+        value = attrs.get("name_it", getattr(self.instance, "name_it", None))
+        others = Skill.objects.filter(typology=typology, name_it=value)
+        if self.instance:
+            others = others.exclude(pk=self.instance.pk)
+        if others.exists():
+            errors["name_it"] = (
+                "A skill with this name already exists for this typology."
+            )
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
 
 
 class TechnologyReadSerializer(serializers.ModelSerializer):
@@ -95,8 +129,8 @@ class WorkExperienceStaffReadSerializer(serializers.ModelSerializer):
         fields = [
             "uuid",
             "active",
-            "title",
-            "description",
+            *get_translation_fields("title"),
+            *get_translation_fields("description"),
             "company",
             "start_date",
             "end_date",
@@ -138,8 +172,8 @@ class WorkExperienceWriteSerializer(serializers.ModelSerializer):
         model = WorkExperience
         fields = [
             "active",
-            "title",
-            "description",
+            *get_translation_fields("title"),
+            *get_translation_fields("description"),
             "company",
             "start_date",
             "end_date",
@@ -147,6 +181,13 @@ class WorkExperienceWriteSerializer(serializers.ModelSerializer):
             "soft_skills",
             "technologies",
         ]
+        extra_kwargs = {
+            "title_it": {
+                "required": True,
+                "allow_null": False,
+                "allow_blank": False,
+            },
+        }
 
 
 class ProjectReadSerializer(serializers.ModelSerializer):
@@ -173,8 +214,8 @@ class ProjectStaffReadSerializer(serializers.ModelSerializer):
         fields = [
             "uuid",
             "active",
-            "title",
-            "description",
+            *get_translation_fields("title"),
+            *get_translation_fields("description"),
             "technologies",
             "work_experience",
         ]
@@ -198,8 +239,15 @@ class ProjectWriteSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             "active",
-            "title",
-            "description",
+            *get_translation_fields("title"),
+            *get_translation_fields("description"),
             "technologies",
             "work_experience",
         ]
+        extra_kwargs = {
+            "title_it": {
+                "required": True,
+                "allow_null": False,
+                "allow_blank": False,
+            },
+        }

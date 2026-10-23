@@ -12,7 +12,7 @@ from .serializers import (
     SpokenLanguageStaffReadSerializer,
     SpokenLanguageWriteSerializer,
 )
-from api.utils.views.models import ModelViews, Actions
+from api.utils.views.models import ModelViews, StaffModelViews
 
 
 class PersonalInfoView(
@@ -43,27 +43,19 @@ class PersonalInfoView(
 overview_views = ModelViews(
     model=Overview,
     read_serializer=OverviewReadSerializer,
-    read_staff_serializer=OverviewStaffReadSerializer,
+)
+overview_staff_views = StaffModelViews(
+    model=Overview,
+    read_serializer=OverviewStaffReadSerializer,
     write_serializer=OverviewWriteSerializer,
-    actions=(
-        Actions.LIST,
-        Actions.RETRIEVE,
-        Actions.CREATE,
-        Actions.UPDATE,
-        Actions.DESTROY,
-    ),
 )
 
 spoken_language_views = ModelViews(
     model=SpokenLanguage,
     read_serializer=SpokenLanguageReadSerializer,
-    read_staff_serializer=SpokenLanguageStaffReadSerializer,
+)
+spoken_language_staff_views = StaffModelViews(
+    model=SpokenLanguage,
+    read_serializer=SpokenLanguageStaffReadSerializer,
     write_serializer=SpokenLanguageWriteSerializer,
-    actions=(
-        Actions.LIST,
-        Actions.RETRIEVE,
-        Actions.CREATE,
-        Actions.UPDATE,
-        Actions.DESTROY,
-    ),
 )

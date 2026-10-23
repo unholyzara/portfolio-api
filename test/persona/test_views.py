@@ -5,7 +5,10 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from test.utils.abstract import AbstractActiveModelViewsTest
+from test.utils.abstract import (
+    AbstractActiveModelViewsTest,
+    AbstractStaffModelViewsTest,
+)
 
 from persona.models import PersonalInfo, Overview, SpokenLanguage
 
@@ -97,14 +100,41 @@ class TestOverviewViews(AbstractActiveModelViewsTest):
 
 
 @pytest.mark.django_db
+class TestOverviewStaffViews(AbstractStaffModelViewsTest):
+    model = Overview
+    list_url_name = "overview-staff-list"
+    retrieve_url_name = "overview-staff-detail"
+    payload = {
+        "active": True,
+        "text_it": "overview text it",
+    }
+    update_key = "text_it"
+    update_value = "new-text"
+
+
+@pytest.mark.django_db
 class TestSpokenLanguageViews(AbstractActiveModelViewsTest):
     model = SpokenLanguage
-    list_url_name = "spokenlanguage-list"
-    retrieve_url_name = "spokenlanguage-detail"
+    list_url_name = "spoken-language-list"
+    retrieve_url_name = "spoken-language-detail"
     payload = {
         "active": True,
         "name": "name",
         "level": 4,
     }
     update_key = "name"
+    update_value = "new-name"
+
+
+@pytest.mark.django_db
+class TestSpokenLanguageStaffViews(AbstractStaffModelViewsTest):
+    model = SpokenLanguage
+    list_url_name = "spoken-language-staff-list"
+    retrieve_url_name = "spoken-language-staff-detail"
+    payload = {
+        "active": True,
+        "name_it": "name it",
+        "level": 4,
+    }
+    update_key = "name_it"
     update_value = "new-name"

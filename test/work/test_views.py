@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 
 from test.utils.abstract import (
     AbstractModelViewsTest,
+    AbstractStaffModelViewsTest,
     AbstractActiveModelViewsTest,
 )
 
@@ -41,6 +42,19 @@ class TestCompanyViews(AbstractModelViewsTest):
 
 
 @pytest.mark.django_db
+class TestCompanyStaffViews(AbstractStaffModelViewsTest):
+    model = Company
+    list_url_name = "company-staff-list"
+    retrieve_url_name = "company-staff-detail"
+    payload = {
+        "name": "company 1",
+        "website": None,
+    }
+    update_key = "name"
+    update_value = "company 2"
+
+
+@pytest.mark.django_db
 class TestSkillViews(AbstractActiveModelViewsTest):
     model = Skill
     list_url_name = "skill-list"
@@ -52,6 +66,21 @@ class TestSkillViews(AbstractActiveModelViewsTest):
         "typology": SkillType.TECHNICAL,
     }
     update_key = "name"
+    update_value = "technicalskill 2"
+
+
+@pytest.mark.django_db
+class TestSkillStaffViews(AbstractStaffModelViewsTest):
+    model = Skill
+    list_url_name = "skill-staff-list"
+    retrieve_url_name = "skill-staff-detail"
+    payload = {
+        "active": True,
+        "name_it": "technicalskill 1",
+        "description_it": "description",
+        "typology": SkillType.TECHNICAL,
+    }
+    update_key = "name_it"
     update_value = "technicalskill 2"
 
 
@@ -71,10 +100,25 @@ class TestTechnologyViews(AbstractActiveModelViewsTest):
 
 
 @pytest.mark.django_db
+class TestStaffTechnologyViews(AbstractStaffModelViewsTest):
+    model = Technology
+    list_url_name = "technology-staff-list"
+    retrieve_url_name = "technology-staff-detail"
+    payload = {
+        "active": True,
+        "name": "technology 1",
+        "typology": "language",
+        "level": 4,
+    }
+    update_key = "name"
+    update_value = "technology 2"
+
+
+@pytest.mark.django_db
 class TestWorkExperienceViews(AbstractActiveModelViewsTest):
     model = WorkExperience
-    list_url_name = "workexperience-list"
-    retrieve_url_name = "workexperience-detail"
+    list_url_name = "work-experiece-list"
+    retrieve_url_name = "work-experiece-detail"
     update_key = "title"
     update_value = "title 2"
 
@@ -147,6 +191,101 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         work_experiece.soft_skills.add(*soft_skills)
         return work_experiece
 
+    def test_retrieve(self):
+        obj = self.create_object()
+        url = self._get_detail_url(pk_value=obj.uuid)
+        r = APIClient().get(url)
+        response_data = r.json()
+        assert response_data[self.pk_key] == str(obj.uuid)
+        obj_tech_skills = [
+            SkillReadSerializer(tech_skill).data
+            for tech_skill in obj.technical_skills.filter(active=True)
+        ]
+        assert response_data["technical_skills"] == obj_tech_skills
+        obj_soft_skills = [
+            SkillReadSerializer(soft_skill).data
+            for soft_skill in obj.soft_skills.filter(active=True)
+        ]
+        assert response_data["soft_skills"] == obj_soft_skills
+
+
+@pytest.mark.django_db
+class TestWorkExperienceStaffViews(AbstractStaffModelViewsTest):
+    model = WorkExperience
+    list_url_name = "work-experiece-staff-list"
+    retrieve_url_name = "work-experiece-staff-detail"
+    update_key = "title_it"
+    update_value = "title 2"
+
+    def _get_company(self):
+        if Company.objects.exists():
+            return Company.objects.get()
+        company = Company.objects.create(name="Company", website=None)
+        return company
+
+    def _get_technical_skills(self):
+        if not Skill.objects.exists():
+            Skill.objects.create(
+                active=True, name="Tech Skill 1", typology=SkillType.TECHNICAL
+            )
+            Skill.objects.create(
+                active=True, name="Tech Skill 2", typology=SkillType.TECHNICAL
+            )
+            Skill.objects.create(
+                active=False, name="Tech Skill 3", typology=SkillType.TECHNICAL
+            )
+        return list(Skill.objects.filter(typology=SkillType.TECHNICAL))
+
+    def _get_soft_skills(self):
+        if not Skill.objects.exists():
+            Skill.objects.create(
+                active=True, name="Soft Skill 1", typology=SkillType.SOFT
+            )
+            Skill.objects.create(
+                active=True, name="Soft Skill 2", typology=SkillType.SOFT
+            )
+            Skill.objects.create(
+                active=False, name="Soft Skill 3", typology=SkillType.SOFT
+            )
+        return list(Skill.objects.filter(typology=SkillType.SOFT))
+
+    def get_payload(self):
+        company = self._get_company()
+        tech_skills = self._get_technical_skills()
+        soft_skills = self._get_soft_skills()
+        payload = {
+            "active": True,
+            "title_it": "title 1",
+            "description_it": "description",
+            "company": str(company.uuid),
+            "start_date": "01/01/2024",
+            "end_date": None,
+            "technical_skills": [
+                str(tech_skill.uuid) for tech_skill in tech_skills
+            ],
+            "soft_skills": [str(soft_skill.uuid) for soft_skill in soft_skills],
+        }
+        return payload
+
+    def create_object(self, **overrides):
+        values = copy.deepcopy(self.get_payload())
+        values.update(overrides)
+        company_uuid = values.pop("company")
+        company = Company.objects.get(uuid=company_uuid)
+        values["company"] = company
+        technical_skills_uuid = values.pop("technical_skills")
+        technical_skills = Skill.objects.filter(
+            uuid__in=technical_skills_uuid, typology=SkillType.TECHNICAL
+        )
+        soft_skills_uuid = values.pop("soft_skills")
+        soft_skills = Skill.objects.filter(
+            uuid__in=soft_skills_uuid, typology=SkillType.SOFT
+        )
+        work_experiece = WorkExperience.objects.create(**values)
+        work_experiece.technical_skills.add(*technical_skills)
+        work_experiece.soft_skills.add(*soft_skills)
+        return work_experiece
+
     def test_retrieve(self, staff_client):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
@@ -160,22 +299,6 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         obj_soft_skills = [
             SkillStaffReadSerializer(soft_skill).data
             for soft_skill in obj.soft_skills.all()
-        ]
-        assert r.json()["soft_skills"] == obj_soft_skills
-
-    def test_retrieve_no_staff(self):
-        obj = self.create_object()
-        url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().get(url)
-        assert r.json()[self.pk_key] == str(obj.uuid)
-        obj_tech_skills = [
-            SkillReadSerializer(tech_skill).data
-            for tech_skill in obj.technical_skills.filter(active=True)
-        ]
-        assert r.json()["technical_skills"] == obj_tech_skills
-        obj_soft_skills = [
-            SkillReadSerializer(soft_skill).data
-            for soft_skill in obj.soft_skills.filter(active=True)
         ]
         assert r.json()["soft_skills"] == obj_soft_skills
 
@@ -245,10 +368,16 @@ class TestProjectViews(AbstractActiveModelViewsTest):
     def _get_technologies(self):
         if not Technology.objects.exists():
             Technology.objects.create(
-                name="Technology 1", typology=TechnologyType.LANGUAGE, level=4
+                name="Technology 1",
+                typology=TechnologyType.LANGUAGE,
+                level=4,
+                active=True,
             )
             Technology.objects.create(
-                name="Technology 2", typology=TechnologyType.LANGUAGE, level=4
+                name="Technology 2",
+                typology=TechnologyType.LANGUAGE,
+                level=4,
+                active=True,
             )
         return list(Technology.objects.all())
 
@@ -276,6 +405,77 @@ class TestProjectViews(AbstractActiveModelViewsTest):
         project.technologies.add(*technologies)
         return project
 
+    def test_retrieve(self):
+        obj = self.create_object()
+        url = self._get_detail_url(pk_value=obj.uuid)
+        r = APIClient().get(url)
+        assert r.json()[self.pk_key] == str(obj.uuid)
+        obj_technologies = [
+            TechnologyReadSerializer(tech).data
+            for tech in obj.technologies.filter(active=True)
+        ]
+        assert r.json()["technologies"] == obj_technologies
+
+
+@pytest.mark.django_db
+class TestProjectStaffViews(AbstractStaffModelViewsTest):
+    model = Project
+    list_url_name = "project-staff-list"
+    retrieve_url_name = "project-staff-detail"
+    update_key = "title_it"
+    update_value = "title 2"
+
+    def _get_company(self):
+        if Company.objects.exists():
+            return Company.objects.get()
+        company = Company.objects.create(name="Company", website=None)
+        return company
+
+    def _get_work_experience(self):
+        if WorkExperience.objects.exists():
+            return WorkExperience.objects.get()
+        company = self._get_company()
+        work_experience = WorkExperience.objects.create(
+            title="work experience",
+            company=company,
+            start_date=date(day=1, month=1, year=2024),
+        )
+        return work_experience
+
+    def _get_technologies(self):
+        if not Technology.objects.exists():
+            Technology.objects.create(
+                name="Technology 1", typology=TechnologyType.LANGUAGE, level=4
+            )
+            Technology.objects.create(
+                name="Technology 2", typology=TechnologyType.LANGUAGE, level=4
+            )
+        return list(Technology.objects.all())
+
+    def get_payload(self):
+        work_experience = self._get_work_experience()
+        technologies = self._get_technologies()
+        payload = {
+            "active": True,
+            "title_it": "title 1",
+            "description_it": "description",
+            "technologies": [str(tech.uuid) for tech in technologies],
+            "work_experience": str(work_experience.uuid),
+        }
+        return payload
+
+    def create_object(self, **overrides):
+        values = copy.deepcopy(self.get_payload())
+        values.update(overrides)
+        work_experience_uuid = values.pop("work_experience")
+        work_experience = WorkExperience.objects.get(uuid=work_experience_uuid)
+        values["work_experience"] = work_experience
+        technologies_uuid = values.pop("technologies")
+        technologies = Technology.objects.filter(uuid__in=technologies_uuid)
+        project = Project.objects.create(**values)
+        project.technologies.add(*technologies)
+        return project
+
     def test_retrieve(self, staff_client):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
@@ -284,17 +484,6 @@ class TestProjectViews(AbstractActiveModelViewsTest):
         obj_technologies = [
             TechnologyReadSerializer(tech).data
             for tech in obj.technologies.all()
-        ]
-        assert r.json()["technologies"] == obj_technologies
-
-    def test_retrieve_no_staff(self):
-        obj = self.create_object()
-        url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().get(url)
-        assert r.json()[self.pk_key] == str(obj.uuid)
-        obj_technologies = [
-            TechnologyReadSerializer(tech).data
-            for tech in obj.technologies.filter(active=True)
         ]
         assert r.json()["technologies"] == obj_technologies
 

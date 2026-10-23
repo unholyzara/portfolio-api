@@ -5,8 +5,12 @@ from . import views
 
 router = SimpleRouter()
 
-views.overview_views.register(router=router, prefix="overviews")
+views.overview_views.register(router=router, prefix="overview")
+views.overview_staff_views.register(router=router, prefix="overview-staff")
 views.spoken_language_views.register(router=router, prefix="spoken-language")
+views.spoken_language_staff_views.register(
+    router=router, prefix="spoken-language-staff"
+)
 
 urlpatterns = [
     path(

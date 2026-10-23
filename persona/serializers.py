@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from modeltranslation.utils import get_translation_fields
 
 from .models import Overview, PersonalInfo, SpokenLanguage
 from .exceptions import PersonalInfoAlreadyExists
@@ -30,13 +31,20 @@ class OverviewReadSerializer(serializers.ModelSerializer):
 class OverviewStaffReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Overview
-        fields = ["uuid", "active", "text"]
+        fields = ["uuid", "active", *get_translation_fields("text")]
 
 
 class OverviewWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Overview
-        fields = ["active", "text"]
+        fields = ["active", *get_translation_fields("text")]
+        extra_kwargs = {
+            "text_it": {
+                "required": True,
+                "allow_null": False,
+                "allow_blank": False,
+            },
+        }
 
 
 class SpokenLanguageReadSerializer(serializers.ModelSerializer):
@@ -48,10 +56,17 @@ class SpokenLanguageReadSerializer(serializers.ModelSerializer):
 class SpokenLanguageStaffReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpokenLanguage
-        fields = ["uuid", "active", "name", "level"]
+        fields = ["uuid", "active", *get_translation_fields("name"), "level"]
 
 
 class SpokenLanguageWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpokenLanguage
-        fields = ["active", "name", "level"]
+        fields = ["active", *get_translation_fields("name"), "level"]
+        extra_kwargs = {
+            "name_it": {
+                "required": True,
+                "allow_null": False,
+                "allow_blank": False,
+            },
+        }

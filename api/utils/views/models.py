@@ -1,3 +1,5 @@
+import abc
+
 from enum import Enum
 from dataclasses import dataclass
 
@@ -31,16 +33,24 @@ class ActiveFilterMixin(generics.GenericAPIView):
 
 
 @dataclass
-class ModelViews:
+class AbstractModelViews(abc.ABC):
     model: type[Model]
     read_serializer: type[serializers.ModelSerializer]
-    read_staff_serializer: type[serializers.ModelSerializer] | None = None
-    write_serializer: type[serializers.ModelSerializer] | None = None
-    actions: tuple[Actions, ...] = PUBLIC_ACTIONS
     select_related: tuple[str, ...] = ()
     prefetch_related: tuple[str, ...] = ()
     lookup_field: str = "uuid"
-    singleton: bool = False
+
+    @abc.abstractmethod
+    def _viewset(self) -> type[viewsets.GenericViewSet]:
+        pass
+
+    def register(self, router: BaseRouter, prefix: str) -> None:
+        router.register(prefix, self._viewset(), basename=prefix)
+
+
+@dataclass
+class ModelViews(AbstractModelViews):
+    actions: tuple[Actions, ...] = PUBLIC_ACTIONS
 
     def _viewset(self) -> type[viewsets.GenericViewSet]:
         config = self
@@ -53,28 +63,48 @@ class ModelViews:
         ):
             lookup_field = config.lookup_field
 
-            @property
-            def user_is_staff(self):
-                user = self.request.user
-                return bool(user.is_authenticated and user.is_staff)
-
             def get_queryset(self):
                 queryset = super().get_queryset().prefetch_related(None)
                 lookups = []
                 for name in config.prefetch_related:
                     related = config.model._meta.get_field(name).related_model
-                    if self.user_is_staff or not issubclass(
-                        related, ActiveModel
-                    ):
-                        lookups.append(name)
-                    else:
-                        lookups.append(
-                            Prefetch(
-                                name,
-                                queryset=related.objects.filter(active=True),
-                            )
+                    lookups.append(
+                        Prefetch(
+                            name,
+                            queryset=related.objects.filter(active=True),
                         )
+                    )
                 return queryset.prefetch_related(*lookups)
+
+            def get_serializer_class(self):
+                return config.read_serializer
+
+            def get_permissions(self):
+                return [permissions.AllowAny()]
+
+        View.queryset = queryset
+        View.__name__ = f"{self.model.__name__}ViewSet"
+        return View
+
+
+@dataclass(kw_only=True)
+class StaffModelViews(AbstractModelViews):
+    write_serializer: type[serializers.ModelSerializer]
+    actions: tuple[Actions, ...] = PUBLIC_ACTIONS + WRITE_ACTIONS
+
+    def _viewset(self) -> type[viewsets.GenericViewSet]:
+        config = self
+        queryset = self.model.objects.select_related(*self.select_related)
+
+        class View(
+            *(action.value for action in self.actions),
+            viewsets.GenericViewSet,
+        ):
+            lookup_field = config.lookup_field
+
+            def get_queryset(self):
+                queryset = super().get_queryset().prefetch_related(None)
+                return queryset.prefetch_related(*config.prefetch_related)
 
             def get_serializer_class(self):
                 if (
@@ -82,20 +112,11 @@ class ModelViews:
                     and config.write_serializer
                 ):
                     return config.write_serializer
-                if self.user_is_staff and config.read_staff_serializer:
-                    return config.read_staff_serializer
                 return config.read_serializer
 
             def get_permissions(self):
-                if self.action in [a.name.lower() for a in PUBLIC_ACTIONS]:
-                    return [permissions.AllowAny()]
                 return [permissions.IsAdminUser()]
 
         View.queryset = queryset
-        View.__name__ = f"{self.model.__name__}ViewSet"
+        View.__name__ = f"{self.model.__name__}StaffViewSet"
         return View
-
-    def register(self, router: BaseRouter, prefix: str) -> None:
-        router.register(
-            prefix, self._viewset(), basename=self.model._meta.model_name
-        )
