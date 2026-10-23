@@ -10,6 +10,7 @@ DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")
 
 INSTALLED_APPS = [
+    "modeltranslation",
     "django.contrib.admin",
     "django.contrib.contenttypes",
     "django.contrib.auth",
@@ -25,6 +26,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -46,6 +48,12 @@ TEMPLATES = [
         },
     },
 ]
+
+LANGUAGE_CODE = "it"
+USE_I18N = True
+LANGUAGES = [("it", "Italiano"), ("en", "English")]
+MODELTRANSLATION_DEFAULT_LANGUAGE = "it"
+MODELTRANSLATION_FALLBACK_LANGUAGES = ("it",)
 
 ROOT_URLCONF = "api.urls"
 

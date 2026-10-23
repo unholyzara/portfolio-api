@@ -6,8 +6,6 @@ from django.db import transaction
 
 from api.utils import models as models_utils
 
-from .utils import enums
-
 
 class PersonalInfo(models_utils.UUIDModel):
     name = models.CharField()
@@ -71,11 +69,10 @@ class Overview(models_utils.UUIDModel, models_utils.ActiveModel):
         ]
 
 
-class SpokenLanguage(models_utils.UUIDModel, models_utils.ActiveModel):
+class SpokenLanguage(
+    models_utils.UUIDModel, models_utils.ActiveModel, models_utils.LevelModel
+):
     name = models.CharField()
-    level = models.CharField(
-        choices=enums.Levels.choices(), blank=True, null=True, max_length=2
-    )
 
     class Meta:
         indexes = [

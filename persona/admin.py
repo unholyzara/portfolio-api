@@ -2,8 +2,9 @@ from django.contrib import admin, messages
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from django.utils.text import Truncator
+from modeltranslation.admin import TabbedTranslationAdmin, TranslationAdmin
 
-from .models import Overview, PersonalInfo, SpokenLanguage
+from .models import Overview, PersonalInfo, SpokenLanguage, Education
 
 
 @admin.register(PersonalInfo)
@@ -15,7 +16,7 @@ class PersonalInfoAdmin(admin.ModelAdmin):
 
 
 @admin.register(Overview)
-class OverviewAdmin(admin.ModelAdmin):
+class OverviewAdmin(TabbedTranslationAdmin):
     list_display = ("text_preview", "active")
     list_filter = ("active",)
     exclude = ("active",)
@@ -41,8 +42,21 @@ class OverviewAdmin(admin.ModelAdmin):
 
 
 @admin.register(SpokenLanguage)
-class SpokenLanguageAdmin(admin.ModelAdmin):
+class SpokenLanguageAdmin(TranslationAdmin):
     list_display = ("name", "level", "active")
     list_filter = ("active", "level")
-    search_fields = ("name",)
+    search_fields = ("name_it", "name_en")
     ordering = ("name",)
+
+
+@admin.register(Education)
+class EducationAdmin(TabbedTranslationAdmin):
+    list_display = ("qualification", "field_of_study", "active")
+    list_filter = ("active",)
+    search_fields = (
+        "qualification_it",
+        "qualification_en",
+        "field_of_study_it",
+        "field_of_study_en",
+    )
+    ordering = ("qualification", "field_of_study")

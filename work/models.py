@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from api.utils import models as models_utils
 
@@ -28,9 +29,9 @@ class SoftSkill(models_utils.UUIDModel, models_utils.ActiveModel):
 
 
 class TechnologyType(models.TextChoices):
-    LANGUAGE = "language", "Language"
+    LANGUAGE = "language", _("Linguagio")
     FRAMEWORK = "framework", "Framework"
-    LIBRARY = "library", "Library"
+    LIBRARY = "library", _("Libreria")
     MARKUP = "markup", "Markup"
     STYLESHEET = "stylesheet", "Stylesheet"
     TOOL = "tool", "Tool"

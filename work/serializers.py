@@ -59,15 +59,23 @@ class SoftSkillWriteSerializer(serializers.ModelSerializer):
 
 
 class TechnologyReadSerializer(serializers.ModelSerializer):
+    typology_display = serializers.CharField(
+        source="get_typology_display", read_only=True
+    )
+
     class Meta:
         model = Technology
-        fields = ["uuid", "name", "typology", "level"]
+        fields = ["uuid", "name", "typology_display", "level"]
 
 
 class TechnologyStaffReadSerializer(serializers.ModelSerializer):
+    typology_display = serializers.CharField(
+        source="get_typology_display", read_only=True
+    )
+
     class Meta:
         model = Technology
-        fields = ["uuid", "active", "name", "typology", "level"]
+        fields = ["uuid", "active", "name", "typology_display", "level"]
 
 
 class TechnologyWriteSerializer(serializers.ModelSerializer):

@@ -8,7 +8,6 @@ from rest_framework.test import APIClient
 from test.utils.abstract import AbstractActiveModelViewsTest
 
 from persona.models import PersonalInfo, Overview, SpokenLanguage
-from persona.utils.enums import Levels
 
 PAYLOAD = {
     "name": "Mario",
@@ -105,7 +104,7 @@ class TestSpokenLanguageViews(AbstractActiveModelViewsTest):
     payload = {
         "active": True,
         "name": "name",
-        "level": Levels.MD.name,
+        "level": 4,
     }
     update_key = "name"
     update_value = "new-name"
