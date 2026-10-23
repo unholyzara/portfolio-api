@@ -1,23 +1,10 @@
 from modeltranslation.translator import register, TranslationOptions
 
-from .models import (
-    TechnicalSkill,
-    SoftSkill,
-    WorkExperience,
-    Project,
-)
+from .models import Skill, WorkExperience, Project
 
 
-@register(TechnicalSkill)
-class TechnicalSkillTranslationOptions(TranslationOptions):
-    fields = (
-        "name",
-        "description",
-    )
-
-
-@register(SoftSkill)
-class SoftSkillTranslationOptions(TranslationOptions):
+@register(Skill)
+class SkillTranslationOptions(TranslationOptions):
     fields = (
         "name",
         "description",

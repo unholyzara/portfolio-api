@@ -12,17 +12,23 @@ class Company(models_utils.UUIDModel):
         return self.name
 
 
-class TechnicalSkill(models_utils.UUIDModel, models_utils.ActiveModel):
+class SkillType(models.TextChoices):
+    TECHNICAL = "technical", "Technical"
+    SOFT = "soft", "Soft"
+
+
+class Skill(models_utils.UUIDModel, models_utils.ActiveModel):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
+    typology = models.CharField(max_length=20, choices=SkillType.choices)
 
-    def __str__(self):
-        return self.name
-
-
-class SoftSkill(models_utils.UUIDModel, models_utils.ActiveModel):
-    name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True, null=True)
+    class Meta:
+        ordering = ["typology", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["typology", "name"], name="unique_skill_typology_name"
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -75,13 +81,15 @@ class WorkExperience(models_utils.UUIDModel, models_utils.ActiveModel):
         default=None,
     )
     technical_skills = models.ManyToManyField(
-        TechnicalSkill,
-        related_name="work_experiences",
+        Skill,
+        related_name="work_experiences_tech",
+        limit_choices_to={"typology": SkillType.TECHNICAL},
         blank=True,
     )
     soft_skills = models.ManyToManyField(
-        SoftSkill,
-        related_name="work_experiences",
+        Skill,
+        related_name="work_experiences_soft",
+        limit_choices_to={"typology": SkillType.SOFT},
         blank=True,
     )
     technologies = models.ManyToManyField(

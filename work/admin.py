@@ -6,8 +6,7 @@ from modeltranslation.admin import TabbedTranslationAdmin
 from .models import (
     Company,
     Project,
-    SoftSkill,
-    TechnicalSkill,
+    Skill,
     Technology,
     WorkExperience,
 )
@@ -20,36 +19,20 @@ class CompanyAdmin(admin.ModelAdmin):
     ordering = ("name",)
 
 
-@admin.register(TechnicalSkill)
-class TechnicalSkillAdmin(TabbedTranslationAdmin):
-    list_display = ("name", "active")
-    list_filter = ("active",)
+@admin.register(Skill)
+class SkillAdmin(TabbedTranslationAdmin):
+    list_display = ("typology", "name", "active")
+    list_filter = ("active", "typology")
     search_fields = ("name_it", "name_en")
-    ordering = ("name",)
+    ordering = ("typology", "name")
     actions = ("set_active",)
 
     @admin.action(description="Set selected technical skills as active")
     def set_active(
-        self, request: HttpRequest, queryset: QuerySet[TechnicalSkill]
+        self, request: HttpRequest, queryset: QuerySet[Skill]
     ) -> None:
         updated = queryset.update(active=True)
         self.message_user(request, f"{updated} technical skills set as active.")
-
-
-@admin.register(SoftSkill)
-class SoftSkillAdmin(TabbedTranslationAdmin):
-    list_display = ("name", "active")
-    list_filter = ("active",)
-    search_fields = ("name_it", "name_en")
-    ordering = ("name",)
-    actions = ("set_active",)
-
-    @admin.action(description="Set selected soft skills as active")
-    def set_active(
-        self, request: HttpRequest, queryset: QuerySet[SoftSkill]
-    ) -> None:
-        updated = queryset.update(active=True)
-        self.message_user(request, f"{updated} soft skills set as active.")
 
 
 @admin.register(Technology)

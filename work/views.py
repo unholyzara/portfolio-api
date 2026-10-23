@@ -2,8 +2,7 @@ from api.utils.views.models import ModelViews, Actions
 
 from .models import (
     Company,
-    TechnicalSkill,
-    SoftSkill,
+    Skill,
     Technology,
     WorkExperience,
     Project,
@@ -11,12 +10,9 @@ from .models import (
 from .serializers import (
     CompanyReadSerializer,
     CompanyWriteSerializer,
-    TechnicalSkillReadSerializer,
-    TechnicalSkillStaffReadSerializer,
-    TechnicalWriteSkillSerializer,
-    SoftSkillReadSerializer,
-    SoftSkillStaffReadSerializer,
-    SoftSkillWriteSerializer,
+    SkillReadSerializer,
+    SkillStaffReadSerializer,
+    SkillWriteSkillSerializer,
     TechnologyReadSerializer,
     TechnologyStaffReadSerializer,
     TechnologyWriteSerializer,
@@ -41,25 +37,11 @@ company_views = ModelViews(
     ),
 )
 
-technical_skill_views = ModelViews(
-    model=TechnicalSkill,
-    read_serializer=TechnicalSkillReadSerializer,
-    read_staff_serializer=TechnicalSkillStaffReadSerializer,
-    write_serializer=TechnicalWriteSkillSerializer,
-    actions=(
-        Actions.LIST,
-        Actions.RETRIEVE,
-        Actions.CREATE,
-        Actions.UPDATE,
-        Actions.DESTROY,
-    ),
-)
-
-soft_skill_views = ModelViews(
-    model=SoftSkill,
-    read_serializer=SoftSkillReadSerializer,
-    read_staff_serializer=SoftSkillStaffReadSerializer,
-    write_serializer=SoftSkillWriteSerializer,
+skill_views = ModelViews(
+    model=Skill,
+    read_serializer=SkillReadSerializer,
+    read_staff_serializer=SkillStaffReadSerializer,
+    write_serializer=SkillWriteSkillSerializer,
     actions=(
         Actions.LIST,
         Actions.RETRIEVE,

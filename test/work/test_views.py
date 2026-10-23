@@ -13,16 +13,16 @@ from test.utils.abstract import (
 
 from work.models import (
     Company,
-    TechnicalSkill,
-    SoftSkill,
+    SkillType,
+    Skill,
     TechnologyType,
     Technology,
     WorkExperience,
     Project,
 )
 from work.serializers import (
-    TechnicalSkillReadSerializer,
-    SoftSkillReadSerializer,
+    SkillReadSerializer,
+    SkillStaffReadSerializer,
     TechnologyReadSerializer,
 )
 
@@ -41,31 +41,18 @@ class TestCompanyViews(AbstractModelViewsTest):
 
 
 @pytest.mark.django_db
-class TestTechnicalSkillViews(AbstractActiveModelViewsTest):
-    model = TechnicalSkill
-    list_url_name = "technicalskill-list"
-    retrieve_url_name = "technicalskill-detail"
+class TestSkillViews(AbstractActiveModelViewsTest):
+    model = Skill
+    list_url_name = "skill-list"
+    retrieve_url_name = "skill-detail"
     payload = {
         "active": True,
         "name": "technicalskill 1",
         "description": "description",
+        "typology": SkillType.TECHNICAL,
     }
     update_key = "name"
     update_value = "technicalskill 2"
-
-
-@pytest.mark.django_db
-class TestSoftSkillViews(AbstractActiveModelViewsTest):
-    model = SoftSkill
-    list_url_name = "softskill-list"
-    retrieve_url_name = "softskill-detail"
-    payload = {
-        "active": True,
-        "name": "softskill 1",
-        "description": "description",
-    }
-    update_key = "name"
-    update_value = "softskill 2"
 
 
 @pytest.mark.django_db
@@ -98,18 +85,30 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         return company
 
     def _get_technical_skills(self):
-        if not TechnicalSkill.objects.exists():
-            TechnicalSkill.objects.create(active=True, name="Tech Skill 1")
-            TechnicalSkill.objects.create(active=True, name="Tech Skill 2")
-            TechnicalSkill.objects.create(active=False, name="Tech Skill 3")
-        return list(TechnicalSkill.objects.all())
+        if not Skill.objects.exists():
+            Skill.objects.create(
+                active=True, name="Tech Skill 1", typology=SkillType.TECHNICAL
+            )
+            Skill.objects.create(
+                active=True, name="Tech Skill 2", typology=SkillType.TECHNICAL
+            )
+            Skill.objects.create(
+                active=False, name="Tech Skill 3", typology=SkillType.TECHNICAL
+            )
+        return list(Skill.objects.filter(typology=SkillType.TECHNICAL))
 
     def _get_soft_skills(self):
-        if not SoftSkill.objects.exists():
-            SoftSkill.objects.create(active=True, name="Soft Skill 1")
-            SoftSkill.objects.create(active=True, name="Soft Skill 2")
-            SoftSkill.objects.create(active=False, name="Soft Skill 3")
-        return list(SoftSkill.objects.all())
+        if not Skill.objects.exists():
+            Skill.objects.create(
+                active=True, name="Soft Skill 1", typology=SkillType.SOFT
+            )
+            Skill.objects.create(
+                active=True, name="Soft Skill 2", typology=SkillType.SOFT
+            )
+            Skill.objects.create(
+                active=False, name="Soft Skill 3", typology=SkillType.SOFT
+            )
+        return list(Skill.objects.filter(typology=SkillType.SOFT))
 
     def get_payload(self):
         company = self._get_company()
@@ -136,11 +135,13 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         company = Company.objects.get(uuid=company_uuid)
         values["company"] = company
         technical_skills_uuid = values.pop("technical_skills")
-        technical_skills = TechnicalSkill.objects.filter(
-            uuid__in=technical_skills_uuid
+        technical_skills = Skill.objects.filter(
+            uuid__in=technical_skills_uuid, typology=SkillType.TECHNICAL
         )
         soft_skills_uuid = values.pop("soft_skills")
-        soft_skills = SoftSkill.objects.filter(uuid__in=soft_skills_uuid)
+        soft_skills = Skill.objects.filter(
+            uuid__in=soft_skills_uuid, typology=SkillType.SOFT
+        )
         work_experiece = WorkExperience.objects.create(**values)
         work_experiece.technical_skills.add(*technical_skills)
         work_experiece.soft_skills.add(*soft_skills)
@@ -152,12 +153,12 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         r = staff_client.get(url)
         assert r.json()[self.pk_key] == str(obj.uuid)
         obj_tech_skills = [
-            TechnicalSkillReadSerializer(tech_skill).data
+            SkillStaffReadSerializer(tech_skill).data
             for tech_skill in obj.technical_skills.all()
         ]
         assert r.json()["technical_skills"] == obj_tech_skills
         obj_soft_skills = [
-            SoftSkillReadSerializer(soft_skill).data
+            SkillStaffReadSerializer(soft_skill).data
             for soft_skill in obj.soft_skills.all()
         ]
         assert r.json()["soft_skills"] == obj_soft_skills
@@ -168,12 +169,12 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         r = APIClient().get(url)
         assert r.json()[self.pk_key] == str(obj.uuid)
         obj_tech_skills = [
-            TechnicalSkillReadSerializer(tech_skill).data
+            SkillReadSerializer(tech_skill).data
             for tech_skill in obj.technical_skills.filter(active=True)
         ]
         assert r.json()["technical_skills"] == obj_tech_skills
         obj_soft_skills = [
-            SoftSkillReadSerializer(soft_skill).data
+            SkillReadSerializer(soft_skill).data
             for soft_skill in obj.soft_skills.filter(active=True)
         ]
         assert r.json()["soft_skills"] == obj_soft_skills
@@ -182,18 +183,18 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
         payload = {}
-        tech_skill_4 = TechnicalSkill.objects.create(
-            active=True, name="Tech Skill 4"
+        tech_skill_4 = Skill.objects.create(
+            active=True, name="Tech Skill 4", typology=SkillType.TECHNICAL
         )
-        tech_skill_5 = TechnicalSkill.objects.create(
-            active=True, name="Tech Skill 5"
+        tech_skill_5 = Skill.objects.create(
+            active=True, name="Tech Skill 5", typology=SkillType.TECHNICAL
         )
         tech_skills_uuid = [str(tech_skill_4.uuid), str(tech_skill_5.uuid)]
-        soft_skill_4 = SoftSkill.objects.create(
-            active=True, name="Tech Skill 4"
+        soft_skill_4 = Skill.objects.create(
+            active=True, name="Soft Skill 4", typology=SkillType.SOFT
         )
-        soft_skill_5 = SoftSkill.objects.create(
-            active=True, name="Tech Skill 5"
+        soft_skill_5 = Skill.objects.create(
+            active=True, name="Soft Skill 5", typology=SkillType.SOFT
         )
         soft_skills_uuid = [str(soft_skill_4.uuid), str(soft_skill_5.uuid)]
         payload = self.get_payload()
