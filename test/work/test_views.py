@@ -1,5 +1,7 @@
 import copy
 
+from datetime import date
+
 import pytest
 
 from rest_framework.test import APIClient
@@ -13,12 +15,15 @@ from work.models import (
     Company,
     TechnicalSkill,
     SoftSkill,
+    TechnologyType,
     Technology,
     WorkExperience,
+    Project,
 )
 from work.serializers import (
     TechnicalSkillReadSerializer,
     SoftSkillReadSerializer,
+    TechnologyReadSerializer,
 )
 
 
@@ -209,3 +214,110 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
         assert [
             str(soft_skill.uuid) for soft_skill in updated_obj_soft_skills
         ] == soft_skills_uuid
+
+
+@pytest.mark.django_db
+class TestProjectViews(AbstractActiveModelViewsTest):
+    model = Project
+    list_url_name = "project-list"
+    retrieve_url_name = "project-detail"
+    update_key = "title"
+    update_value = "title 2"
+
+    def _get_company(self):
+        if Company.objects.exists():
+            return Company.objects.get()
+        company = Company.objects.create(name="Company", website=None)
+        return company
+
+    def _get_work_experience(self):
+        if WorkExperience.objects.exists():
+            return WorkExperience.objects.get()
+        company = self._get_company()
+        work_experience = WorkExperience.objects.create(
+            title="work experience",
+            company=company,
+            start_date=date(day=1, month=1, year=2024),
+        )
+        return work_experience
+
+    def _get_technologies(self):
+        if not Technology.objects.exists():
+            Technology.objects.create(
+                name="Technology 1", typology=TechnologyType.LANGUAGE, level=4
+            )
+            Technology.objects.create(
+                name="Technology 2", typology=TechnologyType.LANGUAGE, level=4
+            )
+        return list(Technology.objects.all())
+
+    def get_payload(self):
+        work_experience = self._get_work_experience()
+        technologies = self._get_technologies()
+        payload = {
+            "active": True,
+            "title": "title 1",
+            "description": "description",
+            "technologies": [str(tech.uuid) for tech in technologies],
+            "work_experience": str(work_experience.uuid),
+        }
+        return payload
+
+    def create_object(self, **overrides):
+        values = copy.deepcopy(self.get_payload())
+        values.update(overrides)
+        work_experience_uuid = values.pop("work_experience")
+        work_experience = WorkExperience.objects.get(uuid=work_experience_uuid)
+        values["work_experience"] = work_experience
+        technologies_uuid = values.pop("technologies")
+        technologies = Technology.objects.filter(uuid__in=technologies_uuid)
+        project = Project.objects.create(**values)
+        project.technologies.add(*technologies)
+        return project
+
+    def test_retrieve(self, staff_client):
+        obj = self.create_object()
+        url = self._get_detail_url(pk_value=obj.uuid)
+        r = staff_client.get(url)
+        assert r.json()[self.pk_key] == str(obj.uuid)
+        obj_technologies = [
+            TechnologyReadSerializer(tech).data
+            for tech in obj.technologies.all()
+        ]
+        assert r.json()["technologies"] == obj_technologies
+
+    def test_retrieve_no_staff(self):
+        obj = self.create_object()
+        url = self._get_detail_url(pk_value=obj.uuid)
+        r = APIClient().get(url)
+        assert r.json()[self.pk_key] == str(obj.uuid)
+        obj_technologies = [
+            TechnologyReadSerializer(tech).data
+            for tech in obj.technologies.filter(active=True)
+        ]
+        assert r.json()["technologies"] == obj_technologies
+
+    def test_update_m2m(self, staff_client):
+        obj = self.create_object()
+        url = self._get_detail_url(pk_value=obj.uuid)
+        payload = {}
+        tech_4 = Technology.objects.create(
+            name="Technology 4", typology=TechnologyType.LANGUAGE, level=4
+        )
+        tech_5 = Technology.objects.create(
+            name="Technology 5", typology=TechnologyType.LANGUAGE, level=4
+        )
+        technologies_uuid = [str(tech_4.uuid), str(tech_5.uuid)]
+        payload = self.get_payload()
+        payload["technologies"] = technologies_uuid
+        r = staff_client.put(
+            url,
+            payload,
+            format="json",
+        )
+        assert r.status_code == 200
+        updated_obj = Project.objects.get()
+        updated_obj_technologies = updated_obj.technologies.all()
+        assert [
+            str(tech.uuid) for tech in updated_obj_technologies
+        ] == technologies_uuid

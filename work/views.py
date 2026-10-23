@@ -6,6 +6,7 @@ from .models import (
     SoftSkill,
     Technology,
     WorkExperience,
+    Project,
 )
 from .serializers import (
     CompanyReadSerializer,
@@ -22,6 +23,9 @@ from .serializers import (
     WorkExperienceReadSerializer,
     WorkExperienceStaffReadSerializer,
     WorkExperienceWriteSerializer,
+    ProjectReadSerializer,
+    ProjectStaffReadSerializer,
+    ProjectWriteSerializer,
 )
 
 company_views = ModelViews(
@@ -93,4 +97,20 @@ work_experience_views = ModelViews(
     ),
     select_related=("company",),
     prefetch_related=("technical_skills", "soft_skills", "technologies"),
+)
+
+project_views = ModelViews(
+    model=Project,
+    read_serializer=ProjectReadSerializer,
+    read_staff_serializer=ProjectStaffReadSerializer,
+    write_serializer=ProjectWriteSerializer,
+    actions=(
+        Actions.LIST,
+        Actions.RETRIEVE,
+        Actions.CREATE,
+        Actions.UPDATE,
+        Actions.DESTROY,
+    ),
+    select_related=("work_experience",),
+    prefetch_related=("technologies",),
 )

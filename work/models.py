@@ -94,3 +94,25 @@ class WorkExperience(models_utils.UUIDModel, models_utils.ActiveModel):
             return f"{self.title} - {self.company.name}"
         else:
             return self.title
+
+
+class Project(models_utils.UUIDModel, models_utils.ActiveModel):
+    title = models.CharField(max_length=100, unique=True)
+    description = models.TextField(
+        blank=True,
+        null=True,
+    )
+    technologies = models.ManyToManyField(
+        Technology,
+        related_name="projects",
+        blank=True,
+    )
+    work_experience = models.ForeignKey(
+        WorkExperience, blank=True, null=True, on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        ordering = ["title"]
+
+    def __str__(self):
+        return self.title

@@ -6,6 +6,7 @@ from .models import (
     SoftSkill,
     Technology,
     WorkExperience,
+    Project,
 )
 
 
@@ -136,9 +137,17 @@ class WorkExperienceWriteSerializer(serializers.ModelSerializer):
         required=False,
     )
 
+    technologies = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=Technology.objects.all(),
+        many=True,
+        required=False,
+    )
+
     class Meta:
         model = WorkExperience
         fields = [
+            "active",
             "title",
             "description",
             "company",
@@ -147,4 +156,60 @@ class WorkExperienceWriteSerializer(serializers.ModelSerializer):
             "technical_skills",
             "soft_skills",
             "technologies",
+        ]
+
+
+class ProjectReadSerializer(serializers.ModelSerializer):
+    technologies = TechnologyReadSerializer(many=True, read_only=True)
+    work_experience = WorkExperienceReadSerializer(read_only=True)
+
+    class Meta:
+        model = Project
+        fields = [
+            "uuid",
+            "title",
+            "description",
+            "technologies",
+            "work_experience",
+        ]
+
+
+class ProjectStaffReadSerializer(serializers.ModelSerializer):
+    technologies = TechnologyReadSerializer(many=True, read_only=True)
+    work_experience = WorkExperienceReadSerializer(read_only=True)
+
+    class Meta:
+        model = Project
+        fields = [
+            "uuid",
+            "active",
+            "title",
+            "description",
+            "technologies",
+            "work_experience",
+        ]
+
+
+class ProjectWriteSerializer(serializers.ModelSerializer):
+    technologies = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=Technology.objects.all(),
+        many=True,
+        required=False,
+    )
+    work_experience = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=WorkExperience.objects.all(),
+        allow_null=True,
+        required=False,
+    )
+
+    class Meta:
+        model = Project
+        fields = [
+            "active",
+            "title",
+            "description",
+            "technologies",
+            "work_experience",
         ]
