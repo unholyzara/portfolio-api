@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "it-IT"
+
+reviews:
+  profile: "chill"
+  high_level_summary: true
+  poem: false
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+
+  path_filters:
+    - "!**/migrations/**"
+    - "!**/.coverage"
+    - "!**/*.lock"
+
+  path_instructions:
+    - path: "**/*.py"
+      instructions: |
+        Verifica rigorosamente la formattazione e l'ordinamento degli import in ogni file Python.
+        Gli import devono essere suddivisi esattamente in questi 7 blocchi separati da una singola riga vuota, senza mescolare mai le categorie:
+
+        1. Import diretti di moduli built-in di Python:
+           `import x`
+           (es. import os, import sys)
+
+        [riga vuota]
+
+        2. Import 'from' da moduli built-in di Python:
+           `from x import y`
+           (es. from typing import Optional, from uuid import UUID)
+
+        [riga vuota]
+
+        3. Import diretti di pacchetti esterni installati:
+           `import z`
+           (es. import pytest)
+
+        [riga vuota]
+
+        4. Import 'from' di pacchetti esterni installati:
+           `from z import w`
+           (es. from rest_framework import status, from django.db import models)
+
+        [riga vuota]
+
+        5. Import diretti assoluti del codice locale del progetto:
+           `import app.module`
+           (dove 'app' è il package o root locale, es. api, persona, work)
+
+        [riga vuota]
+
+        6. Import 'from' assoluti del codice locale del progetto:
+           `from app.module import func`
+
+        [riga vuota]
+
+        7. Import relativi locali:
+           `from .module import func2` o `from ..module import func3`
+
+        Regole aggiuntive sugli import:
+        - All'interno di ciascun blocco, gli import devono essere ordinati alfabeticamente.
+        - Se un blocco non contiene import, non lasciare righe vuote consecutive.
+        - Evita import multipli sulla stessa riga (es. non scrivere 'import os, sys', ma separali).
+        - Segnala qualsiasi deviazione da questo schema come suggerimento di modifica (con suggestion block).
