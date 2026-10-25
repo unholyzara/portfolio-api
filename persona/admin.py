@@ -8,7 +8,7 @@ from .models import Overview, PersonalInfo, SpokenLanguage, Education
 
 
 @admin.register(PersonalInfo)
-class PersonalInfoAdmin(admin.ModelAdmin):
+class PersonalInfoAdmin(TabbedTranslationAdmin):
     list_display = ("name", "surname", "birth_date")
 
     def has_add_permission(self, request: HttpRequest) -> bool:
