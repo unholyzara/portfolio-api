@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from django.utils.text import Truncator
-from modeltranslation.admin import TabbedTranslationAdmin, TranslationAdmin
+from modeltranslation.admin import TabbedTranslationAdmin
 
 from .models import Overview, PersonalInfo, SpokenLanguage, Education
 
@@ -42,7 +42,7 @@ class OverviewAdmin(TabbedTranslationAdmin):
 
 
 @admin.register(SpokenLanguage)
-class SpokenLanguageAdmin(TranslationAdmin):
+class SpokenLanguageAdmin(TabbedTranslationAdmin):
     list_display = ("name", "level", "active")
     list_filter = ("active", "level")
     search_fields = ("name_it", "name_en")
