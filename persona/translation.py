@@ -1,6 +1,11 @@
 from modeltranslation.translator import register, TranslationOptions
 
-from .models import Overview, SpokenLanguage, Education
+from .models import PersonalInfo, Overview, SpokenLanguage, Education
+
+
+@register(PersonalInfo)
+class PersonalInfoTranslationOptions(TranslationOptions):
+    fields = ("job_role",)
 
 
 @register(Overview)

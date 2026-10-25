@@ -1,6 +1,6 @@
 from rest_framework import generics, mixins, permissions
 
-from .models import Overview, SpokenLanguage
+from .models import Overview, SpokenLanguage, Education
 from .serializers import (
     PersonalInfoReadSerializer,
     PersonalInfoWriteSerializer,
@@ -10,6 +10,9 @@ from .serializers import (
     SpokenLanguageReadSerializer,
     SpokenLanguageStaffReadSerializer,
     SpokenLanguageWriteSerializer,
+    EducationReadSerializer,
+    EducationStaffReadSerializer,
+    EducationWriteSerializer,
 )
 from api.utils.views.models import ModelViews, StaffModelViews
 
@@ -58,4 +61,14 @@ spoken_language_staff_views = StaffModelViews(
     model=SpokenLanguage,
     read_serializer=SpokenLanguageStaffReadSerializer,
     write_serializer=SpokenLanguageWriteSerializer,
+)
+
+education_views = ModelViews(
+    model=Education,
+    read_serializer=EducationReadSerializer,
+)
+education_staff_views = StaffModelViews(
+    model=Education,
+    read_serializer=EducationStaffReadSerializer,
+    write_serializer=EducationWriteSerializer,
 )

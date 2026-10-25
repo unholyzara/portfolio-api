@@ -10,12 +10,15 @@ from test.utils.abstract import (
     AbstractStaffModelViewsTest,
 )
 
-from persona.models import PersonalInfo, Overview, SpokenLanguage
+from persona.models import PersonalInfo, Overview, SpokenLanguage, Education
 
 PAYLOAD = {
     "name": "Mario",
     "surname": "Rossi",
     "birth_date": "2000-01-01",
+    "job_role": "test role",
+    "email": "test@email.com",
+    "phone_number": "xxxxxxx",
 }
 
 
@@ -29,6 +32,9 @@ class TestPersonalInfoViews:
             "name": "Mario",
             "surname": "Rossi",
             "birth_date": date(2000, 1, 1),
+            "job_role": "test role",
+            "email": "test@email.com",
+            "phone_number": "xxxxxxx",
         }
         values.update(overrides)
         return PersonalInfo.objects.create(**values)
@@ -87,6 +93,9 @@ class TestPersonalInfoStaffViews:
             "name": "Mario",
             "surname": "Rossi",
             "birth_date": date(2000, 1, 1),
+            "job_role": "test role",
+            "email": "test@email.com",
+            "phone_number": "xxxxxxx",
         }
         values.update(overrides)
         return PersonalInfo.objects.create(**values)
@@ -196,3 +205,39 @@ class TestSpokenLanguageStaffViews(AbstractStaffModelViewsTest):
     }
     update_key = "name_it"
     update_value = "new-name"
+
+
+@pytest.mark.django_db
+class TestEducationViews(AbstractActiveModelViewsTest):
+    model = Education
+    list_url_name = "education-list"
+    retrieve_url_name = "education-detail"
+    payload = {
+        "active": True,
+        "institution": "institution",
+        "qualification": "qualification",
+        "field_of_study": "field_of_study",
+        "start_date": date(2010, 1, 1),
+        "end_date": date(2011, 1, 1),
+        "description": "description",
+    }
+    update_key = "qualification"
+    update_value = "new-qualification"
+
+
+@pytest.mark.django_db
+class TestEducationStaffViews(AbstractStaffModelViewsTest):
+    model = Education
+    list_url_name = "education-staff-list"
+    retrieve_url_name = "education-staff-detail"
+    payload = {
+        "active": True,
+        "institution": "institution",
+        "qualification_it": "qualification",
+        "field_of_study_it": "field_of_study",
+        "start_date": date(2010, 1, 1),
+        "end_date": date(2011, 1, 1),
+        "description_it": "description",
+    }
+    update_key = "qualification_it"
+    update_value = "new-qualification"
