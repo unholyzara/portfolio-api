@@ -5,3 +5,4 @@ __pycache__/
 staticfiles/
 .DS_Store
 .envrc
+.coverage
