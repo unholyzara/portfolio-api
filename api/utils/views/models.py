@@ -62,6 +62,8 @@ class ModelViews(AbstractModelViews):
             viewsets.GenericViewSet,
         ):
             lookup_field = config.lookup_field
+            serializer_class = config.read_serializer
+            permission_classes = [permissions.AllowAny]
 
             def get_queryset(self):
                 queryset = super().get_queryset().prefetch_related(None)
@@ -75,12 +77,6 @@ class ModelViews(AbstractModelViews):
                         )
                     )
                 return queryset.prefetch_related(*lookups)
-
-            def get_serializer_class(self):
-                return config.read_serializer
-
-            def get_permissions(self):
-                return [permissions.AllowAny()]
 
         View.queryset = queryset
         View.__name__ = f"{self.model.__name__}ViewSet"
@@ -101,6 +97,7 @@ class StaffModelViews(AbstractModelViews):
             viewsets.GenericViewSet,
         ):
             lookup_field = config.lookup_field
+            permission_classes = [permissions.IsAdminUser]
 
             def get_queryset(self):
                 queryset = super().get_queryset().prefetch_related(None)
@@ -113,9 +110,6 @@ class StaffModelViews(AbstractModelViews):
                 ):
                     return config.write_serializer
                 return config.read_serializer
-
-            def get_permissions(self):
-                return [permissions.IsAdminUser()]
 
         View.queryset = queryset
         View.__name__ = f"{self.model.__name__}StaffViewSet"

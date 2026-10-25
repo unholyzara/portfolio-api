@@ -16,5 +16,10 @@ urlpatterns = [
     path(
         "personal-info/", views.PersonalInfoView.as_view(), name="personalinfo"
     ),
+    path(
+        "personal-info-staff/",
+        views.PersonalInfoStaffView.as_view(),
+        name="personalinfo-staff",
+    ),
     *router.urls,
 ]

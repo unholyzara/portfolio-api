@@ -44,6 +44,64 @@ class TestPersonalInfoViews:
 
     def test_create(self, staff_client):
         r = staff_client.post(self.url, PAYLOAD, format="json")
+        assert r.status_code == 405
+        assert not PersonalInfo.objects.exists()
+
+    def test_create_conflict(self, staff_client):
+        self._create_personal_info()
+        r = staff_client.post(
+            self.url, {**PAYLOAD, "name": "Luigi"}, format="json"
+        )
+        assert r.status_code == 405
+        assert PersonalInfo.objects.get().name == "Mario"
+
+    def test_update(self, staff_client):
+        self._create_personal_info()
+        r = staff_client.put(
+            self.url, {**PAYLOAD, "name": "Luigi"}, format="json"
+        )
+        assert r.status_code == 405
+        assert PersonalInfo.objects.get().name == "Mario"
+
+    def test_destroy(self, staff_client):
+        self._create_personal_info()
+        r = staff_client.delete(self.url)
+        assert r.status_code == 405
+        assert PersonalInfo.objects.exists()
+
+    @pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])
+    def test_anonymous_cannot_write(self, method):
+        self._create_personal_info()
+        r = getattr(APIClient(), method)(self.url, PAYLOAD, format="json")
+        assert r.status_code == 405
+        assert PersonalInfo.objects.get().name == "Mario"
+
+
+@pytest.mark.django_db
+class TestPersonalInfoStaffViews:
+    def setup_method(self):
+        self.url = reverse("personalinfo-staff")
+
+    def _create_personal_info(self, **overrides):
+        values = {
+            "name": "Mario",
+            "surname": "Rossi",
+            "birth_date": date(2000, 1, 1),
+        }
+        values.update(overrides)
+        return PersonalInfo.objects.create(**values)
+
+    def test_detail(self, staff_client):
+        obj = self._create_personal_info()
+        r = staff_client.get(self.url)
+        assert r.json()["name"] == obj.name
+
+    def test_detail_404(self, staff_client):
+        r = staff_client.get(self.url)
+        assert r.status_code == 404
+
+    def test_create(self, staff_client):
+        r = staff_client.post(self.url, PAYLOAD, format="json")
         assert r.status_code == 201
         assert PersonalInfo.objects.get().name == "Mario"
 

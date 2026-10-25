@@ -1,7 +1,6 @@
 from rest_framework import generics, mixins, permissions
-from django.shortcuts import get_object_or_404
 
-from .models import Overview, PersonalInfo, SpokenLanguage
+from .models import Overview, SpokenLanguage
 from .serializers import (
     PersonalInfoReadSerializer,
     PersonalInfoWriteSerializer,
@@ -14,29 +13,30 @@ from .serializers import (
 )
 from api.utils.views.models import ModelViews, StaffModelViews
 
+from .mixins import PersonalInfoMixin
+from .exceptions import PersonalInfoAlreadyExists
 
-class PersonalInfoView(
+
+class PersonalInfoView(PersonalInfoMixin, generics.RetrieveAPIView):
+    serializer_class = PersonalInfoReadSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class PersonalInfoStaffView(
+    PersonalInfoMixin,
     mixins.CreateModelMixin,
     generics.RetrieveUpdateDestroyAPIView,
 ):
-    queryset = PersonalInfo.objects.all()
+    permission_classes = [permissions.IsAdminUser]
 
     def get_serializer_class(self):
         if self.request.method == "GET":
             return PersonalInfoReadSerializer
         return PersonalInfoWriteSerializer
 
-    def get_permissions(self):
-        if self.request.method == "GET":
-            return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
-
-    def get_object(self):
-        obj = get_object_or_404(self.get_queryset())
-        self.check_object_permissions(self.request, obj)
-        return obj
-
     def post(self, request, *args, **kwargs):
+        if self.get_queryset().exists():
+            raise PersonalInfoAlreadyExists()
         return self.create(request, *args, **kwargs)
 
 
