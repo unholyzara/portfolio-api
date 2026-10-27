@@ -9,6 +9,7 @@ from .models import (
     Skill,
     Technology,
     WorkExperience,
+    ProjectRepository,
 )
 
 
@@ -86,3 +87,11 @@ class ProjectAdmin(TabbedTranslationAdmin):
         "technologies__name_en",
     )
     ordering = ("title",)
+
+
+@admin.register(ProjectRepository)
+class ProjectRepositoryAdmin(admin.ModelAdmin):
+    list_display = ("label", "project")
+    list_filter = ("project",)
+    search_fields = ("project__title",)
+    ordering = ("label",)

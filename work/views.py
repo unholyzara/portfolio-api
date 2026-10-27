@@ -6,6 +6,7 @@ from .models import (
     Technology,
     WorkExperience,
     Project,
+    ProjectRepository,
 )
 from .serializers import (
     CompanyReadSerializer,
@@ -22,6 +23,8 @@ from .serializers import (
     ProjectReadSerializer,
     ProjectStaffReadSerializer,
     ProjectWriteSerializer,
+    ProjectRepositoryReadSerializer,
+    ProjectRepositoryWriteSerializer,
 )
 
 company_views = ModelViews(
@@ -80,4 +83,16 @@ project_staff_views = StaffModelViews(
     write_serializer=ProjectWriteSerializer,
     select_related=("work_experience",),
     prefetch_related=("technologies",),
+)
+
+project_repository_views = ModelViews(
+    model=ProjectRepository,
+    read_serializer=ProjectRepositoryReadSerializer,
+    select_related=("project",),
+)
+project_repository_staff_views = StaffModelViews(
+    model=ProjectRepository,
+    read_serializer=ProjectRepositoryReadSerializer,
+    write_serializer=ProjectRepositoryWriteSerializer,
+    select_related=("project",),
 )

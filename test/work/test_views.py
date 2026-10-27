@@ -20,6 +20,7 @@ from work.models import (
     Technology,
     WorkExperience,
     Project,
+    ProjectRepository,
 )
 from work.serializers import (
     SkillReadSerializer,
@@ -511,3 +512,69 @@ class TestProjectStaffViews(AbstractStaffModelViewsTest):
         assert [
             str(tech.uuid) for tech in updated_obj_technologies
         ] == technologies_uuid
+
+
+@pytest.mark.django_db
+class TestProjectRepositoryViews(AbstractModelViewsTest):
+    model = ProjectRepository
+    list_url_name = "project-repository-list"
+    retrieve_url_name = "project-repository-detail"
+    update_key = "label"
+    update_value = "label 2"
+
+    def _get_project(self):
+        if Project.objects.exists():
+            return Project.objects.get()
+        project = Project.objects.create(title="Project")
+        return project
+
+    def get_payload(self):
+        project = self._get_project()
+        payload = {
+            "project": str(project.uuid),
+            "url": "https://github.com/unholyzara/portfolio-api",
+            "label": "label",
+        }
+        return payload
+
+    def create_object(self, **overrides):
+        values = copy.deepcopy(self.get_payload())
+        values.update(overrides)
+        project_uuid = values.pop("project")
+        project = Project.objects.get(uuid=project_uuid)
+        values["project"] = project  # type: ignore
+        project_repository = ProjectRepository.objects.create(**values)
+        return project_repository
+
+
+@pytest.mark.django_db
+class TestProjectRepositoryStaffViews(AbstractStaffModelViewsTest):
+    model = ProjectRepository
+    list_url_name = "project-repository-staff-list"
+    retrieve_url_name = "project-repository-staff-detail"
+    update_key = "label"
+    update_value = "label 2"
+
+    def _get_project(self):
+        if Project.objects.exists():
+            return Project.objects.get()
+        project = Project.objects.create(title="Project")
+        return project
+
+    def get_payload(self):
+        project = self._get_project()
+        payload = {
+            "project": str(project.uuid),
+            "url": "https://github.com/unholyzara/portfolio-api",
+            "label": "label",
+        }
+        return payload
+
+    def create_object(self, **overrides):
+        values = copy.deepcopy(self.get_payload())
+        values.update(overrides)
+        project_uuid = values.pop("project")
+        project = Project.objects.get(uuid=project_uuid)
+        values["project"] = project  # type: ignore
+        project_repository = ProjectRepository.objects.create(**values)
+        return project_repository
