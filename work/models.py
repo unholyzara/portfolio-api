@@ -126,3 +126,17 @@ class Project(models_utils.UUIDModel, models_utils.ActiveModel):
 
     def __str__(self):
         return self.title
+
+
+class ProjectRepository(models_utils.UUIDModel):
+    project = models.ForeignKey(
+        Project, related_name="repositories", on_delete=models.CASCADE
+    )
+    url = models.URLField()
+    label = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        ordering = ["label"]
+
+    def __str__(self):
+        return self.label or self.url

@@ -8,6 +8,7 @@ from .models import (
     Technology,
     WorkExperience,
     Project,
+    ProjectRepository,
 )
 
 
@@ -251,3 +252,24 @@ class ProjectWriteSerializer(serializers.ModelSerializer):
                 "allow_blank": False,
             },
         }
+
+
+class ProjectRepositoryReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectRepository
+        fields = [
+            "uuid",
+            "project",
+            "url",
+            "label",
+        ]
+
+
+class ProjectRepositoryWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectRepository
+        fields = [
+            "project",
+            "url",
+            "label",
+        ]
