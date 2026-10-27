@@ -89,6 +89,7 @@ project_repository_views = ModelViews(
     model=ProjectRepository,
     read_serializer=ProjectRepositoryReadSerializer,
     select_related=("project",),
+    queryset=ProjectRepository.objects.filter(project__active=True).distinct(),
 )
 project_repository_staff_views = StaffModelViews(
     model=ProjectRepository,

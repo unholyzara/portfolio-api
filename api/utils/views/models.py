@@ -3,7 +3,7 @@ import abc
 from enum import Enum
 from dataclasses import dataclass
 
-from django.db.models import Model, Prefetch
+from django.db.models import Model, Prefetch, QuerySet
 from rest_framework import mixins, generics, permissions, serializers, viewsets
 from rest_framework.routers import BaseRouter
 
@@ -39,10 +39,16 @@ class AbstractModelViews(abc.ABC):
     select_related: tuple[str, ...] = ()
     prefetch_related: tuple[str, ...] = ()
     lookup_field: str = "uuid"
+    queryset: QuerySet[Model, Model] | None = None
 
     @abc.abstractmethod
     def _viewset(self) -> type[viewsets.GenericViewSet]:
         pass
+
+    def get_queryset(self):
+        if self.queryset is not None:
+            return self.queryset
+        return self.model.objects.select_related(*self.select_related)
 
     def register(self, router: BaseRouter, prefix: str) -> None:
         router.register(prefix, self._viewset(), basename=prefix)
@@ -54,7 +60,7 @@ class ModelViews(AbstractModelViews):
 
     def _viewset(self) -> type[viewsets.GenericViewSet]:
         config = self
-        queryset = self.model.objects.select_related(*self.select_related)
+        queryset = self.get_queryset()
 
         class View(
             ActiveFilterMixin,
@@ -90,7 +96,7 @@ class StaffModelViews(AbstractModelViews):
 
     def _viewset(self) -> type[viewsets.GenericViewSet]:
         config = self
-        queryset = self.model.objects.select_related(*self.select_related)
+        queryset = self.get_queryset()
 
         class View(
             *(action.value for action in self.actions),

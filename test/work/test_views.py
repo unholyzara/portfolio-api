@@ -522,10 +522,13 @@ class TestProjectRepositoryViews(AbstractModelViewsTest):
     update_key = "label"
     update_value = "label 2"
 
-    def _get_project(self):
-        if Project.objects.exists():
-            return Project.objects.get()
-        project = Project.objects.create(title="Project")
+    def _get_project(self, active: bool = True):
+        if Project.objects.filter(active=active).exists():
+            return Project.objects.filter(active=active).get()
+        title_n = Project.objects.all().count()
+        project = Project.objects.create(
+            title=f"Project {title_n +1}", active=active
+        )
         return project
 
     def get_payload(self):
@@ -545,6 +548,21 @@ class TestProjectRepositoryViews(AbstractModelViewsTest):
         values["project"] = project  # type: ignore
         project_repository = ProjectRepository.objects.create(**values)
         return project_repository
+
+    def test_list_project_not_active(self):
+        first_obj = self.create_object()
+        project_not_active = self._get_project(active=False)
+        self.create_object(
+            **{
+                self.update_key: self.update_value,
+                "project": str(project_not_active.uuid),
+            }
+        )
+        r = APIClient().get(self.list_url)
+        assert r.status_code == 200
+        assert [obj[self.pk_key] for obj in r.json()] == [
+            str(first_obj.uuid),
+        ]
 
 
 @pytest.mark.django_db
