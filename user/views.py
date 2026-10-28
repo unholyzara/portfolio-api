@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+
 from django.contrib.auth import authenticate, login, logout
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_protect
@@ -27,10 +29,13 @@ def csrf_token(request: Request) -> Response:
 @throttle_classes([LoginThrottle, LoginEmailThrottle])
 @csrf_protect
 def login_view(request: Request) -> Response:
+    payload = request.data
+    if not isinstance(payload, Mapping):
+        return Response(status=400)
     user = authenticate(
         request,
-        email=str(request.data.get("email", "")),
-        password=request.data.get("password"),
+        email=str(payload.get("email", "")),
+        password=payload.get("password"),
     )
     if user is None or not user.is_staff:
         return Response(status=401)
