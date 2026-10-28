@@ -30,7 +30,7 @@ def csrf_token(request: Request) -> Response:
 def login_view(request: Request) -> Response:
     user = authenticate(
         request,
-        email=str(request.data.get("email", "")).strip().lower(),
+        email=str(request.data.get("email", "")),
         password=request.data.get("password"),
     )
     if user is None or not user.is_staff:

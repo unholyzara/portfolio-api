@@ -9,6 +9,13 @@ if TYPE_CHECKING:
 class UserManager(DjangoUserManager["User"]):
     use_in_migrations = True
 
+    @classmethod
+    def normalize_email(cls, email: str | None) -> str:
+        return super().normalize_email(email).lower()
+
+    def get_by_natural_key(self, username: str | None) -> "User":
+        return super().get_by_natural_key(self.normalize_email(username))
+
     def _create_user(
         self,
         username: str | None,

@@ -1,17 +1,7 @@
+import pytest
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.urls import reverse
-from rest_framework.test import APIClient, APITestCase
-
-EMAIL = "staff@example.com"
-PASSWORD = "S3cure-passw0rd!"
-
-
-def create_user(email=EMAIL, password=PASSWORD, **extra):
-    return get_user_model().objects.create_user(
-        email=email, password=password, **extra
-    )
 
 
 def throttle_limit():
@@ -19,122 +9,132 @@ def throttle_limit():
     return int(rate.split("/")[0])
 
 
-class CsrfTokenViewTestCase(APITestCase):
-    def setUp(self):
-        self.url = reverse("auth-csrf")
+@pytest.mark.django_db
+class TestCsrfTokenView:
+    @pytest.fixture
+    def url(self):
+        return reverse("auth-csrf")
 
-    def test_returns_token_to_anonymous_user(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.data["csrfToken"])
+    def test_returns_token_to_anonymous_user(self, api_client, url):
+        response = api_client.get(url)
+        assert response.status_code == 200
+        assert response.data["csrfToken"]
 
-    def test_sets_csrf_cookie(self):
-        response = self.client.get(self.url)
-        self.assertIn(settings.CSRF_COOKIE_NAME, response.cookies)
+    def test_sets_csrf_cookie(self, api_client, url):
+        response = api_client.get(url)
+        assert settings.CSRF_COOKIE_NAME in response.cookies
 
-    def test_post_not_allowed(self):
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 405)
+    def test_post_not_allowed(self, api_client, url):
+        assert api_client.post(url).status_code == 405
 
 
-class LoginViewTestCase(APITestCase):
-    def setUp(self):
+@pytest.mark.django_db
+class TestLoginView:
+    @pytest.fixture(autouse=True)
+    def reset_throttle(self):
         cache.clear()
-        self.url = reverse("auth-login")
-        self.user = create_user(is_staff=True)
 
-    def post(self, email=EMAIL, password=PASSWORD):
-        return self.client.post(
-            self.url, {"email": email, "password": password}, format="json"
-        )
+    @pytest.fixture
+    def url(self):
+        return reverse("auth-login")
 
-    def test_staff_user_logs_in(self):
-        response = self.post()
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["email"], EMAIL)
-        self.assertEqual(
-            self.client.session["_auth_user_id"], str(self.user.pk)
-        )
+    @pytest.fixture
+    def post(self, api_client, url, email, password):
+        def send(email=email, password=password):
+            return api_client.post(
+                url, {"email": email, "password": password}, format="json"
+            )
 
-    def test_email_is_stripped_and_lowercased(self):
-        response = self.post(email="  STAFF@EXAMPLE.COM ")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["email"], EMAIL)
+        return send
 
-    def test_login_sets_csrf_cookie(self):
-        response = self.post()
-        self.assertIn(settings.CSRF_COOKIE_NAME, response.cookies)
+    def test_staff_user_logs_in(self, api_client, staff_user, post, email):
+        response = post()
+        assert response.status_code == 200
+        assert response.data["email"] == email
+        assert api_client.session["_auth_user_id"] == str(staff_user.pk)
 
-    def test_wrong_password_is_rejected(self):
-        response = self.post(password="wrong")
-        self.assertEqual(response.status_code, 401)
-        self.assertNotIn("_auth_user_id", self.client.session)
+    @pytest.mark.parametrize(
+        "raw", ["  STAFF@EXAMPLE.COM ", "Staff@Example.com"]
+    )
+    def test_email_is_stripped_and_case_insensitive(
+        self, staff_user, post, email, raw
+    ):
+        response = post(email=raw)
+        assert response.status_code == 200
+        assert response.data["email"] == email
 
-    def test_unknown_email_is_rejected(self):
-        response = self.post(email="nobody@example.com")
-        self.assertEqual(response.status_code, 401)
-        self.assertNotIn("_auth_user_id", self.client.session)
+    def test_login_sets_csrf_cookie(self, staff_user, post):
+        response = post()
+        assert settings.CSRF_COOKIE_NAME in response.cookies
 
-    def test_non_staff_user_is_rejected(self):
-        create_user(email="visitor@example.com", is_staff=False)
-        response = self.post(email="visitor@example.com")
-        self.assertEqual(response.status_code, 401)
-        self.assertNotIn("_auth_user_id", self.client.session)
+    @pytest.mark.parametrize(
+        "e,p",
+        [
+            ("staff@example.com", "wrong"),
+            ("nobody@example.com", "S3cure-passw0rd!"),
+        ],
+    )
+    def test_invalid_credentials_are_rejected(
+        self, api_client, staff_user, post, e, p
+    ):
+        response = post(email=e, password=p)
+        assert response.status_code == 401
+        assert "_auth_user_id" not in api_client.session
 
-    def test_inactive_user_is_rejected(self):
-        create_user(
-            email="inactive@example.com", is_staff=True, is_active=False
-        )
-        response = self.post(email="inactive@example.com")
-        self.assertEqual(response.status_code, 401)
-        self.assertNotIn("_auth_user_id", self.client.session)
+    @pytest.mark.parametrize(
+        "extra",
+        [{"is_staff": False}, {"is_staff": True, "is_active": False}],
+    )
+    def test_ineligible_user_is_rejected(
+        self, api_client, make_user, post, extra
+    ):
+        make_user(email="other@example.com", **extra)
+        response = post(email="other@example.com")
+        assert response.status_code == 401
+        assert "_auth_user_id" not in api_client.session
 
-    def test_missing_credentials_are_rejected(self):
-        response = self.client.post(self.url, {}, format="json")
-        self.assertEqual(response.status_code, 401)
+    def test_missing_credentials_are_rejected(self, api_client, url):
+        assert api_client.post(url, {}, format="json").status_code == 401
 
-    def test_get_not_allowed(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 405)
+    def test_get_not_allowed(self, api_client, url):
+        assert api_client.get(url).status_code == 405
 
-    def test_throttled_after_limit(self):
+    def test_throttled_after_limit(self, staff_user, post):
         for _ in range(throttle_limit()):
-            self.post(password="wrong")
-        response = self.post(password="wrong")
-        self.assertEqual(response.status_code, 429)
+            post(password="wrong")
+        assert post(password="wrong").status_code == 429
 
 
-class LogoutViewTestCase(APITestCase):
-    def setUp(self):
-        self.url = reverse("auth-logout")
-        self.user = create_user(is_staff=True)
+@pytest.mark.django_db
+class TestLogoutView:
+    @pytest.fixture
+    def url(self):
+        return reverse("auth-logout")
 
-    def test_logout_clears_session(self):
-        self.client.force_login(self.user)
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 204)
-        self.assertNotIn("_auth_user_id", self.client.session)
+    def test_logout_clears_session(self, api_client, staff_user, url):
+        api_client.force_login(staff_user)
+        response = api_client.post(url)
+        assert response.status_code == 204
+        assert "_auth_user_id" not in api_client.session
 
-    def test_anonymous_user_is_forbidden(self):
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 403)
+    def test_anonymous_user_is_forbidden(self, api_client, url):
+        assert api_client.post(url).status_code == 403
 
-    def test_missing_csrf_token_is_forbidden(self):
-        client = APIClient(enforce_csrf_checks=True)
-        client.force_login(self.user)
-        response = client.post(self.url)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn("_auth_user_id", client.session)
+    def test_missing_csrf_token_is_forbidden(
+        self, csrf_client, staff_user, url
+    ):
+        csrf_client.force_login(staff_user)
+        response = csrf_client.post(url)
+        assert response.status_code == 403
+        assert "_auth_user_id" in csrf_client.session
 
-    def test_valid_csrf_token_allows_logout(self):
-        client = APIClient(enforce_csrf_checks=True)
-        client.force_login(self.user)
-        token = client.get(reverse("auth-csrf")).data["csrfToken"]
-        response = client.post(self.url, HTTP_X_CSRFTOKEN=token)
-        self.assertEqual(response.status_code, 204)
-        self.assertNotIn("_auth_user_id", client.session)
+    def test_valid_csrf_token_allows_logout(self, csrf_client, staff_user, url):
+        csrf_client.force_login(staff_user)
+        token = csrf_client.get(reverse("auth-csrf")).data["csrfToken"]
+        response = csrf_client.post(url, HTTP_X_CSRFTOKEN=token)
+        assert response.status_code == 204
+        assert "_auth_user_id" not in csrf_client.session
 
-    def test_get_not_allowed(self):
-        self.client.force_login(self.user)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 405)
+    def test_get_not_allowed(self, api_client, staff_user, url):
+        api_client.force_login(staff_user)
+        assert api_client.get(url).status_code == 405

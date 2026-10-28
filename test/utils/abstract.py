@@ -38,37 +38,37 @@ class AbstractModelViewsBaseTest(abc.ABC):
 
 
 class AbstractModelViewsTest(AbstractModelViewsBaseTest):
-    def test_list(self):
+    def test_list(self, api_client: APIClient):
         first_obj = self.create_object()
         second_obj = self.create_object(**{self.update_key: self.update_value})
-        r = APIClient().get(self.list_url)
+        r = api_client.get(self.list_url)
         assert r.status_code == 200
         assert [obj[self.pk_key] for obj in r.json()] == [
             str(first_obj.uuid),
             str(second_obj.uuid),
         ]
 
-    def test_retrieve(self):
+    def test_retrieve(self, api_client: APIClient):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().get(url)
+        r = api_client.get(url)
         assert r.json()[self.pk_key] == str(obj.uuid)
 
-    def test_retrieve_404(self):
+    def test_retrieve_404(self, api_client: APIClient):
         test_uuid = uuid4()
         url = self._get_detail_url(pk_value=test_uuid)
-        r = APIClient().get(url)
+        r = api_client.get(url)
         assert r.status_code == 404
 
-    def test_create(self):
-        r = APIClient().post(self.list_url, self.get_payload(), format="json")
+    def test_create(self, api_client: APIClient):
+        r = api_client.post(self.list_url, self.get_payload(), format="json")
         assert r.status_code == 405
         assert not self.model.objects.exists()
 
-    def test_update(self):
+    def test_update(self, api_client: APIClient):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().put(
+        r = api_client.put(
             url,
             {**self.get_payload(), self.update_key: self.update_value},
             format="json",
@@ -79,10 +79,10 @@ class AbstractModelViewsTest(AbstractModelViewsBaseTest):
         dict_obj = obj.__dict__
         assert dict_updated_obj[self.update_key] == dict_obj[self.update_key]
 
-    def test_destroy(self):
+    def test_destroy(self, api_client: APIClient):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().put(url, format="json")
+        r = api_client.put(url, format="json")
         assert r.status_code == 405
         assert self.model.objects.exists()
 
@@ -115,10 +115,10 @@ class AbstractStaffModelViewsTest(AbstractModelViewsBaseTest):
         r = staff_client.get(url)
         assert r.status_code == 404
 
-    def test_retrieve_no_staff(self):
+    def test_retrieve_no_staff(self, api_client: APIClient):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().get(url)
+        r = api_client.get(url)
         assert r.status_code == 403
 
     def test_create(self, staff_client: APIClient):
@@ -129,8 +129,8 @@ class AbstractStaffModelViewsTest(AbstractModelViewsBaseTest):
         dict_obj = created_obj.__dict__
         assert dict_obj[self.update_key] == payload[self.update_key]
 
-    def test_create_no_staff(self):
-        r = APIClient().post(self.list_url, self.get_payload(), format="json")
+    def test_create_no_staff(self, api_client: APIClient):
+        r = api_client.post(self.list_url, self.get_payload(), format="json")
         assert r.status_code == 403
         assert not self.model.objects.exists()
 
@@ -154,10 +154,10 @@ class AbstractStaffModelViewsTest(AbstractModelViewsBaseTest):
         assert r.status_code == 404
         assert not self.model.objects.exists()
 
-    def test_update_not_staff(self):
+    def test_update_not_staff(self, api_client: APIClient):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().put(
+        r = api_client.put(
             url,
             {**self.get_payload(), self.update_key: self.update_value},
             format="json",
@@ -183,32 +183,32 @@ class AbstractStaffModelViewsTest(AbstractModelViewsBaseTest):
         assert r.status_code == 404
         assert self.model.objects.exists()
 
-    def test_destroy_not_staff(self):
+    def test_destroy_not_staff(self, api_client: APIClient):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().put(url, format="json")
+        r = api_client.put(url, format="json")
         assert r.status_code == 403
         assert self.model.objects.exists()
 
 
 class AbstractActiveModelViewsTest(AbstractModelViewsTest):
-    def test_list(self):
+    def test_list(self, api_client: APIClient):
         active_obj = self.create_object()
         self.create_object(active=False, **{self.update_key: self.update_value})
-        r = APIClient().get(self.list_url)
+        r = api_client.get(self.list_url)
         assert r.status_code == 200
         assert [overview[self.pk_key] for overview in r.json()] == [
             str(active_obj.uuid),
         ]
 
-    def test_retrieve_no_staff(self):
+    def test_retrieve_no_staff(self, api_client: APIClient):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().get(url)
+        r = api_client.get(url)
         assert r.json()[self.pk_key] == str(obj.uuid)
 
-    def test_retrieve_no_staff_not_active(self):
+    def test_retrieve_no_staff_not_active(self, api_client: APIClient):
         obj = self.create_object(active=False)
         url = self._get_detail_url(pk_value=obj.uuid)
-        r = APIClient().get(url)
+        r = api_client.get(url)
         assert r.status_code == 404
