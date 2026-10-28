@@ -56,7 +56,12 @@ class AbstractModelViews(abc.ABC):
 
 @dataclass
 class ModelViews(AbstractModelViews):
-    actions: tuple[Actions, ...] = PUBLIC_ACTIONS
+    actions: tuple[Actions, ...] | None = None
+
+    def get_actions(self):
+        if self.actions is None:
+            return PUBLIC_ACTIONS
+        return self.actions
 
     def _viewset(self) -> type[viewsets.GenericViewSet]:
         config = self
@@ -64,7 +69,7 @@ class ModelViews(AbstractModelViews):
 
         class View(
             ActiveFilterMixin,
-            *(action.value for action in self.actions),
+            *(action.value for action in self.get_actions()),
             viewsets.GenericViewSet,
         ):
             lookup_field = config.lookup_field
@@ -92,14 +97,20 @@ class ModelViews(AbstractModelViews):
 @dataclass(kw_only=True)
 class StaffModelViews(AbstractModelViews):
     write_serializer: type[serializers.ModelSerializer]
-    actions: tuple[Actions, ...] = PUBLIC_ACTIONS + WRITE_ACTIONS
+    actions: tuple[Actions, ...] | None = None
+
+    def get_actions(self):
+        if self.actions is None:
+            return PUBLIC_ACTIONS + WRITE_ACTIONS
+        return self.actions
 
     def _viewset(self) -> type[viewsets.GenericViewSet]:
         config = self
+        actions = self.get_actions()
         queryset = self.get_queryset()
 
         class View(
-            *(action.value for action in self.actions),
+            *(action.value for action in actions),
             viewsets.GenericViewSet,
         ):
             lookup_field = config.lookup_field

@@ -7,6 +7,7 @@ from work.urls import router as work_router
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("settings/", include("site_settings.urls")),
     path("user/", include("user.urls")),
     path(
         "health/",
