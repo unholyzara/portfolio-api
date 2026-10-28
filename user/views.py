@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.middleware.csrf import get_token
+from django.views.decorators.csrf import csrf_protect
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -24,6 +25,7 @@ def csrf_token(request: Request) -> Response:
 @authentication_classes([])
 @permission_classes([AllowAny])
 @throttle_classes([LoginThrottle, LoginEmailThrottle])
+@csrf_protect
 def login_view(request: Request) -> Response:
     user = authenticate(
         request,
