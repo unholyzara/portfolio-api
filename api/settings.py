@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "user",
     "persona",
     "work",
 ]
@@ -59,6 +60,7 @@ ROOT_URLCONF = "api.urls"
 
 WSGI_APPLICATION = "api.wsgi.application"
 
+AUTH_USER_MODEL = "user.User"
 
 DATABASES = {
     "default": {
@@ -126,4 +128,19 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],
+    "DEFAULT_THROTTLE_RATES": {
+        "login": "5/min",
+        "login_email": "5/min",
+    },
+    "NUM_PROXIES": 0,
 }
+
+SESSION_COOKIE_NAME = os.environ["SESSION_COOKIE_NAME"]
+SESSION_COOKIE_DOMAIN = os.environ["SESSION_COOKIE_DOMAIN"] or None
+SESSION_COOKIE_SECURE = os.environ["COOKIE_SECURE"] == "true"
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_NAME = os.environ["CSRF_COOKIE_NAME"]
+CSRF_COOKIE_DOMAIN = os.environ["SESSION_COOKIE_DOMAIN"] or None
+CSRF_COOKIE_SECURE = os.environ["COOKIE_SECURE"] == "true"
+CSRF_TRUSTED_ORIGINS = os.environ["CSRF_TRUSTED_ORIGINS"].split(",")
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
