@@ -128,7 +128,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],
-    "DEFAULT_THROTTLE_RATES": {"login": "5/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "login": "5/min",
+        "login_email": "5/min",
+    },
+    "NUM_PROXIES": 0,
 }
 
 SESSION_COOKIE_NAME = os.environ["SESSION_COOKIE_NAME"]
