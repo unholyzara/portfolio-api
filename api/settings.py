@@ -128,6 +128,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],
+    "DEFAULT_THROTTLE_RATES": {"login": "5/min"},
 }
 
 SESSION_COOKIE_NAME = os.environ["SESSION_COOKIE_NAME"]
@@ -139,7 +140,3 @@ CSRF_COOKIE_DOMAIN = os.environ["SESSION_COOKIE_DOMAIN"] or None
 CSRF_COOKIE_SECURE = os.environ["COOKIE_SECURE"] == "true"
 CSRF_TRUSTED_ORIGINS = os.environ["CSRF_TRUSTED_ORIGINS"].split(",")
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-REST_FRAMEWORK = {
-    "DEFAULT_THROTTLE_RATES": {"login": "5/min"},
-}
