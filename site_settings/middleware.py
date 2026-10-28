@@ -2,7 +2,12 @@ from django.http import JsonResponse
 
 from .models import SiteSettings
 
-ALLOWED_PREFIXES = ("/api/site-status/", "/api/auth/", "/admin/", "/static/")
+ALLOWED_PREFIXES = (
+    "/settings/site-status/",
+    "/user/auth/",
+    "/admin/",
+    "/static/",
+)
 
 
 class MaintenanceMiddleware:
