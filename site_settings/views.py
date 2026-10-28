@@ -18,8 +18,8 @@ def site_status(request: Request):
     maintenance = SiteSettings.is_maintenance()
     data = {"maintenance": maintenance, "bypass": request.user.is_staff}
     if maintenance:
-        current = SiteSettings.objects.get()
-        data["message"] = current.maintenance_message
+        current = SiteSettings.objects.first()
+        data["message"] = current.maintenance_message if current else ""
     return Response(data)
 
 
