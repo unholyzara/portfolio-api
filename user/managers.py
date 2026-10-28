@@ -48,6 +48,10 @@ class UserManager(DjangoUserManager["User"]):
         password: str | None = None,
         **extra_fields: Any,
     ) -> "User":
+        if extra_fields.get("is_staff", True) is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser", True) is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         return self._create_user(username, email, password, **extra_fields)
