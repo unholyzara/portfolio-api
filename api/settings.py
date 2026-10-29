@@ -134,7 +134,7 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.JSONParser",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "core.permissions.MaintenancePermission",
+        "site_settings.permissions.MaintenancePermission",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "login": "5/min",
