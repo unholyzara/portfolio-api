@@ -1,12 +1,15 @@
 import abc, copy
 
+import pytest
 from typing import Any, TypeVar
 from uuid import uuid4
 
+from django.core.cache import cache
 from django.urls import reverse
 from rest_framework.test import APIClient
 
 from api.utils.models import UUIDModel
+from site_settings.models import SiteSettings
 
 UUIDModelType = TypeVar("UUIDModelType", bound=UUIDModel)
 
@@ -24,6 +27,23 @@ class AbstractModelViewsBaseTest(abc.ABC):
 
     def setup_method(self):
         self.list_url = reverse(self.list_url_name)
+
+    @pytest.fixture(autouse=True)
+    def _clear_cache(self):
+        cache.clear()
+        yield
+        cache.clear()
+
+    @pytest.fixture
+    def maintenance_on(self):
+        site_settings = SiteSettings.objects.get()
+        site_settings.maintenance = True
+        site_settings.save()
+
+    @staticmethod
+    def assert_maintenance(response):
+        assert response.status_code == 503
+        assert response.json() == {"detail": "maintenance"}
 
     def _get_detail_url(self, pk_value: Any):
         return reverse(self.retrieve_url_name, kwargs={self.pk_key: pk_value})
@@ -48,6 +68,10 @@ class AbstractModelViewsTest(AbstractModelViewsBaseTest):
             str(second_obj.uuid),
         ]
 
+    def test_list_maintenance(self, api_client: APIClient, maintenance_on):
+        self.create_object()
+        self.assert_maintenance(api_client.get(self.list_url))
+
     def test_retrieve(self, api_client: APIClient):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
@@ -60,9 +84,25 @@ class AbstractModelViewsTest(AbstractModelViewsBaseTest):
         r = api_client.get(url)
         assert r.status_code == 404
 
+    def test_retrieve_maintenance(self, api_client: APIClient, maintenance_on):
+        obj = self.create_object()
+        url = self._get_detail_url(pk_value=obj.uuid)
+        self.assert_maintenance(api_client.get(url))
+
+    def test_retrieve_404_maintenance(
+        self, api_client: APIClient, maintenance_on
+    ):
+        url = self._get_detail_url(pk_value=uuid4())
+        self.assert_maintenance(api_client.get(url))
+
     def test_create(self, api_client: APIClient):
         r = api_client.post(self.list_url, self.get_payload(), format="json")
         assert r.status_code == 405
+        assert not self.model.objects.exists()
+
+    def test_create_maintenance(self, api_client: APIClient, maintenance_on):
+        r = api_client.post(self.list_url, self.get_payload(), format="json")
+        self.assert_maintenance(r)
         assert not self.model.objects.exists()
 
     def test_update(self, api_client: APIClient):
@@ -79,11 +119,31 @@ class AbstractModelViewsTest(AbstractModelViewsBaseTest):
         dict_obj = obj.__dict__
         assert dict_updated_obj[self.update_key] == dict_obj[self.update_key]
 
+    def test_update_maintenance(self, api_client: APIClient, maintenance_on):
+        obj = self.create_object()
+        url = self._get_detail_url(pk_value=obj.uuid)
+        r = api_client.put(
+            url,
+            {**self.get_payload(), self.update_key: self.update_value},
+            format="json",
+        )
+        self.assert_maintenance(r)
+        assert self.model.objects.get().__dict__[self.update_key] == (
+            obj.__dict__[self.update_key]
+        )
+
     def test_destroy(self, api_client: APIClient):
         obj = self.create_object()
         url = self._get_detail_url(pk_value=obj.uuid)
         r = api_client.put(url, format="json")
         assert r.status_code == 405
+        assert self.model.objects.exists()
+
+    def test_destroy_maintenance(self, api_client: APIClient, maintenance_on):
+        obj = self.create_object()
+        url = self._get_detail_url(pk_value=obj.uuid)
+        r = api_client.delete(url, format="json")
+        self.assert_maintenance(r)
         assert self.model.objects.exists()
 
 

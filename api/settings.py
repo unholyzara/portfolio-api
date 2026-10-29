@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "user",
+    "site_settings",
     "persona",
     "work",
 ]
@@ -31,6 +32,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "site_settings.middleware.MaintenanceMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -122,17 +124,23 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "site_settings.permissions.MaintenancePermission",
+    ],
     "DEFAULT_THROTTLE_RATES": {
         "login": "5/min",
         "login_email": "5/min",
     },
-    "NUM_PROXIES": 0,
+    "NUM_PROXIES": 1,
 }
 
 SESSION_COOKIE_NAME = os.environ["SESSION_COOKIE_NAME"]
