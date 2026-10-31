@@ -106,6 +106,28 @@ class WorkExperience(models_utils.UUIDModel, models_utils.ActiveModel):
             return self.title
 
 
+class WorkResponsibility(models_utils.UUIDModel, models_utils.ActiveModel):
+    work_experience = models.ForeignKey(
+        WorkExperience,
+        on_delete=models.CASCADE,
+        related_name="responsibilities",
+    )
+    description = models.TextField()
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["work_experience", "order"],
+                name="workresponsibility_unique_order",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.description
+
+
 class Project(models_utils.UUIDModel, models_utils.ActiveModel):
     title = models.CharField(max_length=100, unique=True)
     description = models.TextField(

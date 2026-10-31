@@ -7,6 +7,7 @@ from .models import (
     Skill,
     Technology,
     WorkExperience,
+    WorkResponsibility,
     Project,
     ProjectRepository,
 )
@@ -188,6 +189,57 @@ class WorkExperienceWriteSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "title_it": {
+                "required": True,
+                "allow_null": False,
+                "allow_blank": False,
+            },
+        }
+
+
+class WorkResponsibilityReadSerializer(serializers.ModelSerializer):
+    work_experience = WorkExperienceReadSerializer(read_only=True)
+
+    class Meta:
+        model = WorkResponsibility
+        fields = [
+            "uuid",
+            "work_experience",
+            *get_translation_fields("description"),
+            "order",
+        ]
+
+
+class WorkResponsibilityStaffReadSerializer(serializers.ModelSerializer):
+    work_experience = WorkExperienceStaffReadSerializer(read_only=True)
+
+    class Meta:
+        model = WorkResponsibility
+        fields = [
+            "uuid",
+            "active",
+            "work_experience",
+            *get_translation_fields("description"),
+            "order",
+        ]
+
+
+class WorkResponsibilityWriteSerializer(serializers.ModelSerializer):
+    work_experience = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=WorkExperience.objects.all(),
+        required=True,
+    )
+
+    class Meta:
+        model = WorkResponsibility
+        fields = [
+            "active",
+            "work_experience",
+            *get_translation_fields("description"),
+            "order",
+        ]
+        extra_kwargs = {
+            "description_it": {
                 "required": True,
                 "allow_null": False,
                 "allow_blank": False,
