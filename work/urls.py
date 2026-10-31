@@ -13,9 +13,16 @@ views.skill_staff_views.register(router=router, prefix="skill-staff")
 views.technology_views.register(router=router, prefix="technology")
 views.technology_staff_views.register(router=router, prefix="technology-staff")
 
-views.work_experience_views.register(router=router, prefix="work-experiece")
+views.work_experience_views.register(router=router, prefix="work-experience")
 views.work_experience_staff_views.register(
-    router=router, prefix="work-experiece-staff"
+    router=router, prefix="work-experience-staff"
+)
+
+views.work_responsibility_views.register(
+    router=router, prefix="work-responsibility"
+)
+views.work_responsibility_staff_views.register(
+    router=router, prefix="work-responsibility-staff"
 )
 
 views.project_views.register(router=router, prefix="project")

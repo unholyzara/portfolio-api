@@ -1,6 +1,6 @@
 from modeltranslation.translator import register, TranslationOptions
 
-from .models import Skill, WorkExperience, Project
+from .models import Skill, WorkExperience, WorkResponsibility, Project
 
 
 @register(Skill)
@@ -17,6 +17,11 @@ class WorkExperienceTranslationOptions(TranslationOptions):
         "title",
         "description",
     )
+
+
+@register(WorkResponsibility)
+class WorkResponsibilityTranslationOptions(TranslationOptions):
+    fields = ("description",)
 
 
 @register(Project)

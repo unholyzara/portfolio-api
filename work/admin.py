@@ -9,6 +9,7 @@ from .models import (
     Skill,
     Technology,
     WorkExperience,
+    WorkResponsibility,
     ProjectRepository,
 )
 
@@ -71,6 +72,26 @@ class WorkExperienceAdmin(TabbedTranslationAdmin):
     ]
     ordering = [
         "-start_date",
+    ]
+
+
+@admin.register(WorkResponsibility)
+class WorkResponsibilityAdmin(TabbedTranslationAdmin):
+    list_display = [
+        "active",
+        "work_experience",
+        "description",
+        "order",
+    ]
+    list_filter = [
+        "active",
+        "work_experience",
+    ]
+    search_fields = [
+        "description_it",
+        "description_en",
+        "work_experience__title_it",
+        "work_experience__title_en",
     ]
 
 

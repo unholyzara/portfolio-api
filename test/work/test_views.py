@@ -19,6 +19,7 @@ from work.models import (
     TechnologyType,
     Technology,
     WorkExperience,
+    WorkResponsibility,
     Project,
     ProjectRepository,
 )
@@ -118,8 +119,8 @@ class TestStaffTechnologyViews(AbstractStaffModelViewsTest):
 @pytest.mark.django_db
 class TestWorkExperienceViews(AbstractActiveModelViewsTest):
     model = WorkExperience
-    list_url_name = "work-experiece-list"
-    retrieve_url_name = "work-experiece-detail"
+    list_url_name = "work-experience-list"
+    retrieve_url_name = "work-experience-detail"
     update_key = "title"
     update_value = "title 2"
 
@@ -213,8 +214,8 @@ class TestWorkExperienceViews(AbstractActiveModelViewsTest):
 @pytest.mark.django_db
 class TestWorkExperienceStaffViews(AbstractStaffModelViewsTest):
     model = WorkExperience
-    list_url_name = "work-experiece-staff-list"
-    retrieve_url_name = "work-experiece-staff-detail"
+    list_url_name = "work-experience-staff-list"
+    retrieve_url_name = "work-experience-staff-detail"
     update_key = "title_it"
     update_value = "title 2"
 
@@ -339,6 +340,97 @@ class TestWorkExperienceStaffViews(AbstractStaffModelViewsTest):
         assert [
             str(soft_skill.uuid) for soft_skill in updated_obj_soft_skills
         ] == soft_skills_uuid
+
+
+@pytest.mark.django_db
+class TestWorkResponsibilityViews(AbstractActiveModelViewsTest):
+    model = WorkResponsibility
+    list_url_name = "work-responsibility-list"
+    retrieve_url_name = "work-responsibility-detail"
+    update_key = "description_it"
+    update_value = "descritpion IT 2"
+
+    def _get_company(self):
+        if Company.objects.exists():
+            return Company.objects.get()
+        company = Company.objects.create(name="Company", website=None)
+        return company
+
+    def _get_work_experience(self):
+        if WorkExperience.objects.exists():
+            return WorkExperience.objects.get()
+        company = self._get_company()
+        work_experience = WorkExperience.objects.create(
+            active=True,
+            title="work experience",
+            company=company,
+            start_date=date(day=1, month=1, year=2024),
+        )
+        return work_experience
+
+    def get_payload(self):
+        work_experience = self._get_work_experience()
+        payload = {
+            "active": True,
+            "description_it": "description",
+            "work_experience": str(work_experience.uuid),
+            "order": WorkResponsibility.objects.count() + 1,
+        }
+        return payload
+
+    def create_object(self, **overrides):
+        values = copy.deepcopy(self.get_payload())
+        values.update(overrides)
+        work_experience_uuid = values.pop("work_experience")
+        work_experience = WorkExperience.objects.get(uuid=work_experience_uuid)
+        values["work_experience"] = work_experience
+        work_responsibility = WorkResponsibility.objects.create(**values)
+        return work_responsibility
+
+
+@pytest.mark.django_db
+class TestWorkResponsibilityStaffViews(AbstractStaffModelViewsTest):
+    model = WorkResponsibility
+    list_url_name = "work-responsibility-staff-list"
+    retrieve_url_name = "work-responsibility-staff-detail"
+    update_key = "description_it"
+    update_value = "descritpion IT 2"
+
+    def _get_company(self):
+        if Company.objects.exists():
+            return Company.objects.get()
+        company = Company.objects.create(name="Company", website=None)
+        return company
+
+    def _get_work_experience(self):
+        if WorkExperience.objects.exists():
+            return WorkExperience.objects.get()
+        company = self._get_company()
+        work_experience = WorkExperience.objects.create(
+            title="work experience",
+            company=company,
+            start_date=date(day=1, month=1, year=2024),
+        )
+        return work_experience
+
+    def get_payload(self):
+        work_experience = self._get_work_experience()
+        payload = {
+            "active": True,
+            "description_it": "description",
+            "work_experience": str(work_experience.uuid),
+            "order": WorkResponsibility.objects.count() + 1,
+        }
+        return payload
+
+    def create_object(self, **overrides):
+        values = copy.deepcopy(self.get_payload())
+        values.update(overrides)
+        work_experience_uuid = values.pop("work_experience")
+        work_experience = WorkExperience.objects.get(uuid=work_experience_uuid)
+        values["work_experience"] = work_experience
+        work_responsibility = WorkResponsibility.objects.create(**values)
+        return work_responsibility
 
 
 @pytest.mark.django_db

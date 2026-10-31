@@ -7,6 +7,7 @@ from .models import (
     Skill,
     Technology,
     WorkExperience,
+    WorkResponsibility,
     Project,
     ProjectRepository,
 )
@@ -105,6 +106,7 @@ class WorkExperienceReadSerializer(serializers.ModelSerializer):
     company = CompanyReadSerializer(read_only=True)
     technical_skills = SkillReadSerializer(many=True, read_only=True)
     soft_skills = SkillReadSerializer(many=True, read_only=True)
+    technologies = TechnologyReadSerializer(many=True, read_only=True)
 
     class Meta:
         model = WorkExperience
@@ -117,6 +119,7 @@ class WorkExperienceReadSerializer(serializers.ModelSerializer):
             "end_date",
             "technical_skills",
             "soft_skills",
+            "technologies",
         ]
 
 
@@ -124,6 +127,7 @@ class WorkExperienceStaffReadSerializer(serializers.ModelSerializer):
     company = CompanyReadSerializer(read_only=True)
     technical_skills = SkillStaffReadSerializer(many=True, read_only=True)
     soft_skills = SkillStaffReadSerializer(many=True, read_only=True)
+    technologies = TechnologyStaffReadSerializer(many=True, read_only=True)
 
     class Meta:
         model = WorkExperience
@@ -137,6 +141,7 @@ class WorkExperienceStaffReadSerializer(serializers.ModelSerializer):
             "end_date",
             "technical_skills",
             "soft_skills",
+            "technologies",
         ]
 
 
@@ -184,6 +189,57 @@ class WorkExperienceWriteSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "title_it": {
+                "required": True,
+                "allow_null": False,
+                "allow_blank": False,
+            },
+        }
+
+
+class WorkResponsibilityReadSerializer(serializers.ModelSerializer):
+    work_experience = WorkExperienceReadSerializer(read_only=True)
+
+    class Meta:
+        model = WorkResponsibility
+        fields = [
+            "uuid",
+            "work_experience",
+            *get_translation_fields("description"),
+            "order",
+        ]
+
+
+class WorkResponsibilityStaffReadSerializer(serializers.ModelSerializer):
+    work_experience = WorkExperienceStaffReadSerializer(read_only=True)
+
+    class Meta:
+        model = WorkResponsibility
+        fields = [
+            "uuid",
+            "active",
+            "work_experience",
+            "description",
+            "order",
+        ]
+
+
+class WorkResponsibilityWriteSerializer(serializers.ModelSerializer):
+    work_experience = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=WorkExperience.objects.all(),
+        required=True,
+    )
+
+    class Meta:
+        model = WorkResponsibility
+        fields = [
+            "active",
+            "work_experience",
+            *get_translation_fields("description"),
+            "order",
+        ]
+        extra_kwargs = {
+            "description_it": {
                 "required": True,
                 "allow_null": False,
                 "allow_blank": False,
