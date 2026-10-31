@@ -361,6 +361,7 @@ class TestWorkResponsibilityViews(AbstractActiveModelViewsTest):
             return WorkExperience.objects.get()
         company = self._get_company()
         work_experience = WorkExperience.objects.create(
+            active=True,
             title="work experience",
             company=company,
             start_date=date(day=1, month=1, year=2024),
@@ -406,7 +407,6 @@ class TestWorkResponsibilityStaffViews(AbstractStaffModelViewsTest):
             return WorkExperience.objects.get()
         company = self._get_company()
         work_experience = WorkExperience.objects.create(
-            active=True,
             title="work experience",
             company=company,
             start_date=date(day=1, month=1, year=2024),
