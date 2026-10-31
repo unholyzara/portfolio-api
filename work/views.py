@@ -79,9 +79,9 @@ work_responsibility_views = ModelViews(
     model=WorkResponsibility,
     read_serializer=WorkResponsibilityReadSerializer,
     select_related=("work_experience",),
-    queryset=WorkResponsibility.objects.filter(
-        work_experience__active=True
-    ).distinct(),
+    queryset=WorkResponsibility.objects.select_related("work_experience")
+    .filter(work_experience__active=True)
+    .distinct(),
 )
 work_responsibility_staff_views = StaffModelViews(
     model=WorkResponsibility,
