@@ -204,7 +204,7 @@ class WorkResponsibilityReadSerializer(serializers.ModelSerializer):
         fields = [
             "uuid",
             "work_experience",
-            *get_translation_fields("description"),
+            "description",
             "order",
         ]
 
