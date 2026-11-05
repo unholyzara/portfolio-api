@@ -21,7 +21,7 @@ class AbstractModelViewsBaseTest(abc.ABC):
     payload: dict[str, Any]
     staff_payload: dict[str, Any] | None = None
     update_key: str
-    update_value: str
+    update_value: Any
 
     pk_key: str = "uuid"
 

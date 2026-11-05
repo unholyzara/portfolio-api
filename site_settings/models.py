@@ -8,7 +8,6 @@ CACHE_KEY = "site_settings_maintenance"
 
 class SiteSettings(models_utils.UUIDModel):
     maintenance = models.BooleanField(default=False)
-    maintenance_message = models.TextField(blank=True)
 
     class Meta:
         constraints = [

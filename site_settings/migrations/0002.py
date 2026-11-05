@@ -6,8 +6,6 @@ def create_singleton(apps, schema_editor):
     SiteSettings.objects.get_or_create(
         defaults={
             "maintenance": False,
-            "maintenance_message_it": "Attualmente in manutenzione",
-            "maintenance_message_en": "Currently under maintenance",
         }
     )
 

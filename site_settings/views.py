@@ -15,11 +15,12 @@ from .serializers import (
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def site_status(request: Request):
-    maintenance = SiteSettings.is_maintenance()
-    data = {"maintenance": maintenance, "bypass": request.user.is_staff}
-    if maintenance:
-        current = SiteSettings.objects.first()
-        data["message"] = current.maintenance_message if current else ""
+    is_staff = request.user.is_staff
+    maintenance_status = SiteSettings.is_maintenance()
+    maintenance = False if is_staff else maintenance_status
+    data: dict = {"maintenance": maintenance}
+    if is_staff:
+        data["maintenanceStatus"] = maintenance_status
     return Response(data)
 
 
