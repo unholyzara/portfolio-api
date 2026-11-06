@@ -13,8 +13,8 @@ class TestSiteSettingsStaffViews(AbstractStaffModelViewsTest):
     model = SiteSettings
     list_url_name = "site-settings-staff-list"
     retrieve_url_name = "site-settings-staff-detail"
-    update_key = "maintenance_message_it"
-    update_value = "maintenance_message 2"
+    update_key = "maintenance"
+    update_value = True
 
     def get_payload(self):
         obj = SiteSettings.objects.get()
