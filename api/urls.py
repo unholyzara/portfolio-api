@@ -1,4 +1,3 @@
-from django.contrib import admin
 from django.urls import path, include
 
 from .views import health
@@ -6,7 +5,6 @@ from .views import health
 from work.urls import router as work_router
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
     path("settings/", include("site_settings.urls")),
     path("user/", include("user.urls")),
     path(

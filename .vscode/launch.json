@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Serve",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["runserver", "8001", "--noreload"],
+      "django": true,
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}
