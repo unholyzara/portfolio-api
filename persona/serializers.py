@@ -13,6 +13,7 @@ class PersonalInfoReadSerializer(serializers.ModelSerializer):
             "name",
             "surname",
             "birth_date",
+            "location",
             "job_role",
             "email",
             "phone_number",
@@ -26,7 +27,8 @@ class PersonalInfoWriteSerializer(serializers.ModelSerializer):
             "name",
             "surname",
             "birth_date",
-            "job_role",
+            *get_translation_fields("location"),
+            *get_translation_fields("job_role"),
             "email",
             "phone_number",
         ]

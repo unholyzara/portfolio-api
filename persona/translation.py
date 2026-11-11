@@ -5,7 +5,10 @@ from .models import PersonalInfo, Overview, SpokenLanguage, Education
 
 @register(PersonalInfo)
 class PersonalInfoTranslationOptions(TranslationOptions):
-    fields = ("job_role",)
+    fields = (
+        "job_role",
+        "location",
+    )
 
 
 @register(Overview)

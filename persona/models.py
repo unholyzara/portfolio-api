@@ -14,6 +14,7 @@ class PersonalInfo(models_utils.UUIDModel):
     job_role = models.CharField(max_length=100)
     email = models.EmailField()
     phone_number = models.CharField()
+    location = models.CharField(max_length=50)
 
     class Meta:
         constraints = [
