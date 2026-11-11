@@ -10,7 +10,10 @@ class PersonalInfoTranslationOptions(TranslationOptions):
 
 @register(Overview)
 class OverviewTranslationOptions(TranslationOptions):
-    fields = ("text",)
+    fields = (
+        "short_text",
+        "text",
+    )
 
 
 @register(SpokenLanguage)

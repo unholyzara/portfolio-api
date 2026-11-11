@@ -25,6 +25,7 @@ class PersonalInfo(models_utils.UUIDModel):
 
 
 class Overview(models_utils.UUIDModel, models_utils.ActiveModel):
+    short_text = models.TextField()
     text = models.TextField()
 
     def save(
