@@ -65,7 +65,7 @@ class OverviewWriteSerializer(serializers.ModelSerializer):
             *get_translation_fields("text"),
         ]
         extra_kwargs = {
-            "short_text": {
+            "short_text_it": {
                 "required": True,
                 "allow_null": False,
                 "allow_blank": False,
