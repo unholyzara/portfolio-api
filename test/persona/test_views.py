@@ -173,6 +173,7 @@ class TestOverviewStaffViews(AbstractStaffModelViewsTest):
     retrieve_url_name = "overview-staff-detail"
     payload = {
         "active": True,
+        "short_text_it": "overview short text it",
         "text_it": "overview text it",
     }
     update_key = "text_it"
