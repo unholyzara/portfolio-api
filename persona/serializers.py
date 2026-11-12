@@ -13,6 +13,7 @@ class PersonalInfoReadSerializer(serializers.ModelSerializer):
             "name",
             "surname",
             "birth_date",
+            "location",
             "job_role",
             "email",
             "phone_number",
@@ -26,7 +27,8 @@ class PersonalInfoWriteSerializer(serializers.ModelSerializer):
             "name",
             "surname",
             "birth_date",
-            "job_role",
+            *get_translation_fields("location"),
+            *get_translation_fields("job_role"),
             "email",
             "phone_number",
         ]
@@ -40,20 +42,34 @@ class PersonalInfoWriteSerializer(serializers.ModelSerializer):
 class OverviewReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Overview
-        fields = ["uuid", "text"]
+        fields = ["uuid", "short_text", "text"]
 
 
 class OverviewStaffReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Overview
-        fields = ["uuid", "active", *get_translation_fields("text")]
+        fields = [
+            "uuid",
+            "active",
+            *get_translation_fields("short_text"),
+            *get_translation_fields("text"),
+        ]
 
 
 class OverviewWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Overview
-        fields = ["active", *get_translation_fields("text")]
+        fields = [
+            "active",
+            *get_translation_fields("short_text"),
+            *get_translation_fields("text"),
+        ]
         extra_kwargs = {
+            "short_text_it": {
+                "required": True,
+                "allow_null": False,
+                "allow_blank": False,
+            },
             "text_it": {
                 "required": True,
                 "allow_null": False,

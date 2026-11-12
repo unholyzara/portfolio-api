@@ -14,6 +14,7 @@ class PersonalInfo(models_utils.UUIDModel):
     job_role = models.CharField(max_length=100)
     email = models.EmailField()
     phone_number = models.CharField()
+    location = models.CharField(max_length=50)
 
     class Meta:
         constraints = [
@@ -25,6 +26,7 @@ class PersonalInfo(models_utils.UUIDModel):
 
 
 class Overview(models_utils.UUIDModel, models_utils.ActiveModel):
+    short_text = models.TextField()
     text = models.TextField()
 
     def save(
