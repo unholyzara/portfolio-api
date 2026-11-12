@@ -255,6 +255,7 @@ class ProjectReadSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             "uuid",
+            "in_homepage",
             "title",
             "description",
             "technologies",
@@ -271,6 +272,7 @@ class ProjectStaffReadSerializer(serializers.ModelSerializer):
         fields = [
             "uuid",
             "active",
+            "in_homepage",
             *get_translation_fields("title"),
             *get_translation_fields("description"),
             "technologies",
@@ -296,6 +298,7 @@ class ProjectWriteSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             "active",
+            "in_homepage",
             *get_translation_fields("title"),
             *get_translation_fields("description"),
             "technologies",
