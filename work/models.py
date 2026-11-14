@@ -130,6 +130,7 @@ class WorkResponsibility(models_utils.UUIDModel, models_utils.ActiveModel):
 
 class Project(models_utils.UUIDModel, models_utils.ActiveModel):
     in_homepage = models.BooleanField(default=False)
+    is_portfolio = models.BooleanField(default=False)
     title = models.CharField(max_length=100, unique=True)
     description = models.TextField(
         blank=True,
