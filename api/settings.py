@@ -7,9 +7,15 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 
 DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")
+
+def _csv(name: str) -> list[str]:
+    return [v.strip() for v in os.environ[name].split(",") if v.strip()]
+
+
+ALLOWED_HOSTS = _csv("ALLOWED_HOSTS")
 
 INSTALLED_APPS = [
+    "corsheaders",
     "modeltranslation",
     "django.contrib.admin",
     "django.contrib.contenttypes",
@@ -26,6 +32,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -104,8 +111,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
 
 USE_I18N = True
@@ -150,5 +155,8 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_NAME = os.environ["CSRF_COOKIE_NAME"]
 CSRF_COOKIE_DOMAIN = os.environ["SESSION_COOKIE_DOMAIN"] or None
 CSRF_COOKIE_SECURE = os.environ["COOKIE_SECURE"] == "true"
-CSRF_TRUSTED_ORIGINS = os.environ["CSRF_TRUSTED_ORIGINS"].split(",")
+CSRF_TRUSTED_ORIGINS = _csv("CSRF_TRUSTED_ORIGINS")
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+CORS_ALLOWED_ORIGINS = _csv("CORS_ALLOWED_ORIGINS")
+CORS_ALLOW_CREDENTIALS = True

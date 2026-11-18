@@ -197,7 +197,11 @@ class WorkExperienceWriteSerializer(serializers.ModelSerializer):
 
 
 class WorkResponsibilityReadSerializer(serializers.ModelSerializer):
-    work_experience = WorkExperienceReadSerializer(read_only=True)
+    work_experience = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=WorkExperience.objects.all(),
+        required=True,
+    )
 
     class Meta:
         model = WorkResponsibility
@@ -210,7 +214,11 @@ class WorkResponsibilityReadSerializer(serializers.ModelSerializer):
 
 
 class WorkResponsibilityStaffReadSerializer(serializers.ModelSerializer):
-    work_experience = WorkExperienceStaffReadSerializer(read_only=True)
+    work_experience = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=WorkExperience.objects.all(),
+        required=True,
+    )
 
     class Meta:
         model = WorkResponsibility
@@ -218,7 +226,7 @@ class WorkResponsibilityStaffReadSerializer(serializers.ModelSerializer):
             "uuid",
             "active",
             "work_experience",
-            "description",
+            *get_translation_fields("description"),
             "order",
         ]
 
