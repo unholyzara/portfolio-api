@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from .models import SiteSettings
 
 ALLOWED_PREFIXES = (
+    "/health/",
     "/settings/site-status/",
     "/user/auth/",
     "/admin/",
